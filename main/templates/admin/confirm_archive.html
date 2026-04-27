@@ -1,0 +1,38 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Подтверждение{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 600px;">
+    <h2 style="color: #ffc107; margin-bottom: 1.5rem; text-align: center;">Подтверждение действия</h2>
+
+    <div style="background: #fff3cd; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <p style="color: #856404; margin: 0;">
+            <strong>Вы собираетесь {{ action }}:</strong><br>
+            {% if object_type == 'course' %}
+                Курс "{{ object.name }}"
+            {% elif object_type == 'teacher' %}
+                Преподавателя "{{ object.last_name }} {{ object.first_name }}"
+                {% if object.is_activ %}
+                <br><br>Все курсы этого преподавателя также будут архивированы!
+                {% endif %}
+            {% else %}
+                Абитуриента "{{ object.last_name }} {{ object.first_name }}"
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn" style="background: #ffc107; color: #333;">
+                Подтвердить
+            </button>
+            <a href="{% if object_type == 'course' %}{% url 'admin_courses' %}{% elif object_type == 'teacher' %}{% url 'admin_teachers' %}{% else %}{% url 'admin_students' %}{% endif %}"
+               class="btn" style="background: #6c757d;">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

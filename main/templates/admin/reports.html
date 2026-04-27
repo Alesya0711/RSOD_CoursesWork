@@ -1,0 +1,61 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Отчеты{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <h1 style="color: #667eea; margin-bottom: 2rem; text-align: center;">Отчеты</h1>
+
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+
+        <!-- Отчет по курсам -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+            <h2 style="color: #667eea; margin-bottom: 1rem;">Отчет по курсам</h2>
+            <p style="color: #666; margin-bottom: 1.5rem; line-height: 1.6;">
+                Полный список курсов с информацией о преподавателях и количестве записавшихся
+            </p>
+            <a href="{% url 'export_courses_report' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                Скачать Excel
+            </a>
+        </div>
+
+        <!-- Отчет по абитуриентам -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">👨‍🎓</div>
+            <h2 style="color: #667eea; margin-bottom: 1rem;">Отчет по абитуриентам</h2>
+            <p style="color: #666; margin-bottom: 1.5rem; line-height: 1.6;">
+                Список всех абитуриентов с контактной информацией и записанными курсами
+            </p>
+            <a href="{% url 'export_students_report' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                Скачать Excel
+            </a>
+        </div>
+
+        <!-- Отчет по записям -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+            <h2 style="color: #667eea; margin-bottom: 1rem;">Отчет по записям</h2>
+            <p style="color: #666; margin-bottom: 1.5rem; line-height: 1.6;">
+                Информация о всех записях на курсы с датами и статусами
+            </p>
+            <a href="{% url 'export_enrollment_report' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                Скачать Excel
+            </a>
+        </div>
+
+        <!-- Отчет по преподавателям -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">👨‍🏫</div>
+            <h2 style="color: #667eea; margin-bottom: 1rem;">Отчет по преподавателям</h2>
+            <p style="color: #666; margin-bottom: 1.5rem; line-height: 1.6;">
+                Список всех преподавателей с количеством курсов и студентов
+            </p>
+            <a href="{% url 'export_teachers_report' %}" class="btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                Скачать Excel
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

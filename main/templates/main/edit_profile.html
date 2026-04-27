@@ -1,0 +1,75 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 700px;">
+    <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Редактирование профиля</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0; font-size: 1.1rem;">Основные данные</h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">Имя</label>
+                <input type="text" name="first_name" class="form-control"
+                       value="{{ user.first_name|default:abiturient.first_name }}" required>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">Фамилия</label>
+                <input type="text" name="last_name" class="form-control"
+                       value="{{ user.last_name|default:abiturient.last_name }}" required>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+            <input type="email" name="email" class="form-control"
+                   value="{{ user.email|default:abiturient.email }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Фотография</label>
+            {% if course.photo %}
+            <div style="margin-bottom: 1rem;">
+                <img src="{{ course.photo.url }}" alt="{{ course.name }}"
+                     style="max-width: 200px; border-radius: 10px; border: 2px solid #ddd;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" name="photo-clear"> Удалить текущее фото
+                </label>
+            </div>
+            {% endif %}
+            <input type="file" name="photo" class="form-control" accept="image/*">
+            <small style="color: #999;">Форматы: JPG, PNG, GIF. Макс. размер: 5MB</small>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; padding: 1rem; border-radius: 10px; margin: 2rem 0 1.5rem;">
+            <h3 style="margin: 0; font-size: 1.1rem;">Данные абитуриента</h3>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">Телефон</label>
+            <input type="text" name="phone" class="form-control"
+                   value="{{ abiturient.phone|default:'' }}" placeholder="+7 (___) ___-__-__">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">Класс</label>
+            <input type="text" name="class_name" class="form-control"
+                   value="{{ abiturient.class_name|default:'' }}" placeholder="9а, 10б, 11в">
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success" style="flex: 1; max-width: 200px;">Сохранить</button>
+            <a href="{% url 'profile' %}" class="btn" style="background: #6c757d; flex: 1; max-width: 200px; text-align: center;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

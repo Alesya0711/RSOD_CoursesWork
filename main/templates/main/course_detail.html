@@ -1,0 +1,227 @@
+{% extends 'main/base.html' %}
+
+{% block title %}{{ course.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem;">
+    <a href="{% url 'index' %}" style="color: #667eea; text-decoration: none; margin-bottom: 2rem; display: inline-block;">
+        ← Назад к курсам
+    </a>
+
+    <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h1 style="color: #667eea; margin-bottom: 1rem;">{{ course.name }}</h1>
+
+        <div style="display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap;">
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; flex: 1; min-width: 200px;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Преподаватель</p>
+                <p style="font-weight: bold; color: #333;">{{ course.teacher.last_name }} {{ course.teacher.first_name }}</p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; flex: 1; min-width: 200px;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Уровень</p>
+                <p style="font-weight: bold; color: #333;">{{ course.level }}</p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; flex: 1; min-width: 200px;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.5rem;">Стоимость</p>
+                <p style="font-weight: bold; color: #667eea; font-size: 1.3rem;">{{ course.price }} ₽</p>
+            </div>
+        </div>
+
+        <!-- Даты проведения -->
+        <div style="background: #e7f3ff; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; border-left: 4px solid #667eea;">
+            <h3 style="color: #667eea; margin-bottom: 1rem;">Даты проведения</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Начало курса</p>
+                    <p style="font-weight: bold; color: #333; font-size: 1.1rem;">{{ course.start_date|date:"d.m.Y" }}</p>
+                </div>
+                <div>
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Окончание курса</p>
+                    <p style="font-weight: bold; color: #333; font-size: 1.1rem;">{{ course.end_date|date:"d.m.Y" }}</p>
+                </div>
+            </div>
+            {% if course.raspisanie %}
+            <p style="color: #999; margin-top: 1rem; font-size: 0.9rem;">
+                Расписание: {{ course.raspisanie }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: #333; margin-bottom: 1rem;">Описание курса</h3>
+            <p style="color: #666; line-height: 1.6;">{{ course.description }}</p>
+        </div>
+
+        <!-- Фото курса -->
+        {% if course.photo %}
+        <img src="{{ course.photo.url }}" alt="{{ course.name }}"
+             style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 2rem;">
+        {% elif course.photo_url %}
+        <img src="{{ course.photo_url }}" alt="{{ course.name }}"
+             style="width: 100%; height: 300px; object-fit: cover; border-radius: 10px; margin-bottom: 2rem;">
+        {% else %}
+        <div style="width: 100%; height: 300px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 5rem; margin-bottom: 2rem;">
+            📚
+        </div>
+        {% endif %}
+
+        <!-- Блок записи на курс -->
+        <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 10px; text-align: center;">
+            <p style="color: #4caf50; font-size: 1.2rem; margin-bottom: 1rem;">
+                Рейтинг: {{ avg_rating|floatformat:1 }} из 5
+            </p>
+
+            <!-- Информация о местах -->
+            <div style="background: {% if is_full %}#f8d7da{% else %}#d4edda{% endif %};
+                        padding: 1rem;
+                        border-radius: 10px;
+                        margin-bottom: 1.5rem;
+                        border-left: 4px solid {% if is_full %}#dc3545{% else %}#28a745{% endif %};">
+                <p style="margin: 0; color: #333;">
+                    <strong>📊 Места:</strong>
+                    {{ enrolled_count }} из {{ max_students }} занято
+                    {% if available_spots > 0 %}
+                        <span style="color: #28a745;">({{ available_spots }} мест свободно)</span>
+                    {% else %}
+                        <span style="color: #dc3545;">(Нет свободных мест)</span>
+                    {% endif %}
+                </p>
+            </div>
+
+            <!-- Запись закрыта-->
+            {% if enrollment_closed %}
+            <div style="background: #f8d7da; padding: 1.5rem; border-radius: 10px; text-align: center; margin-bottom: 1.5rem;">
+                {% if course_ended %}
+                <p style="color: #dc3545; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                    Запись закрыта — курс завершился
+                </p>
+                <p style="color: #666; margin-bottom: 1rem;">
+                    Курс завершился {{ course.end_date|date:"d.m.Y" }}.
+                </p>
+                {% elif course_started %}
+                <p style="color: #dc3545; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                    Запись закрыта — курс уже начался
+                </p>
+                <p style="color: #666; margin-bottom: 1rem;">
+                    Курс начался {{ course.start_date|date:"d.m.Y" }}. Запись на него закрыта.
+                </p>
+                {% endif %}
+                <button class="btn" disabled style="background: #6c757d; cursor: not-allowed; opacity: 0.6;">
+                    Запись закрыта
+                </button>
+            </div>
+
+            <!-- Курс набран -->
+            {% elif is_full %}
+            <div style="background: #f8d7da; padding: 1.5rem; border-radius: 10px; text-align: center; margin-bottom: 1.5rem;">
+                <p style="color: #dc3545; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                    Курс набран
+                </p>
+                <p style="color: #666; margin-bottom: 1rem;">
+                    К сожалению, все места на этом курсе уже заняты.
+                </p>
+                <button class="btn" disabled style="background: #6c757d; cursor: not-allowed; opacity: 0.6;">
+                    Мест нет
+                </button>
+                <p style="color: #999; font-size: 0.85rem; margin-top: 1rem;">
+                    Вы можете записаться на другие доступные курсы
+                </p>
+            </div>
+
+            <!-- Пользователь авторизован -->
+            {% elif user.is_authenticated %}
+                {% if user_enrollment %}
+                <!-- Уже записан -->
+                <div style="background: #e7f3ff; padding: 1.5rem; border-radius: 10px; text-align: center; margin-bottom: 1.5rem;">
+                    <p style="color: #667eea; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                        Вы уже записаны на этот курс
+                    </p>
+                    <p style="color: #666; margin-bottom: 1rem;">
+                        Статус: <strong>{{ user_enrollment.status }}</strong>
+                    </p>
+                    <a href="{% url 'profile' %}" class="btn" style="background: #667eea;">
+                        Перейти в личный кабинет
+                    </a>
+                </div>
+                {% else %}
+                <!-- Можно записаться -->
+                <div style="background: #d4edda; padding: 1.5rem; border-radius: 10px; text-align: center; margin-bottom: 1.5rem;">
+                    <p style="color: #28a745; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                        Есть свободные места
+                    </p>
+                    <p style="color: #666; margin-bottom: 1rem;">
+                        Доступно мест: <strong>{{ available_spots }}</strong>
+                    </p>
+                    <a href="{% url 'enroll_course' course.course_id %}" class="btn" style="background: #28a745;">
+                        Записаться на курс
+                    </a>
+                </div>
+                {% endif %}
+
+            {% else %}
+            <!-- Не авторизован -->
+            <div style="background: #fff3cd; padding: 1.5rem; border-radius: 10px; text-align: center; margin-bottom: 1.5rem;">
+                <p style="color: #856404; font-size: 1.1rem; margin-bottom: 0.5rem;">
+                    Требуется авторизация
+                </p>
+                <p style="color: #666; margin-bottom: 1rem;">
+                    Войдите или зарегистрируйтесь, чтобы записаться на курс
+                </p>
+                <a href="{% url 'login' %}" class="btn" style="background: #667eea;">
+                    Войти
+                </a>
+                <a href="{% url 'register' %}" class="btn" style="background: #28a745; margin-left: 0.5rem;">
+                    Регистрация
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Отзывы -->
+    <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h2 style="color: #667eea; margin-bottom: 1.5rem;">Отзывы ({{ feedbacks.count }})</h2>
+
+        {% if feedbacks %}
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            {% for feedback in feedbacks %}
+            <div style="border-bottom: 1px solid #eee; padding-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <strong style="color: #333;">{{ feedback.abiturient.last_name }} {{ feedback.abiturient.first_name }}</strong>
+                    <!-- Звёздочки рейтинга -->
+                    <div style="color: #ffc107; font-size: 1.2rem;">
+                        <!--{% for i in "12345"|make_list %}
+                            {% if forloop.counter <= feedback.rating %}
+                                ⭐
+                            {% else %}
+                                <span style="color: #ddd;">⭐</span>
+                            {% endif %}
+                        {% endfor %}-->
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= feedback.rating %}★{% else %}<span style="color: #ddd;">★</span>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <p style="color: #666; line-height: 1.5;">{{ feedback.comment }}</p>
+                <p style="color: #999; font-size: 0.85rem; margin-top: 0.5rem;">
+                    {{ feedback.created_at|date:"d.m.Y H:i" }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #999; text-align: center;">Пока нет отзывов. Будьте первым!</p>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+        <div style="margin-top: 2rem; text-align: center;">
+            <a href="{% url 'add_feedback' course.course_id %}" class="btn" style="background: #28a745;">
+                Оставить отзыв
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

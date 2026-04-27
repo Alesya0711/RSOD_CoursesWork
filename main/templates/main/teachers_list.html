@@ -1,0 +1,42 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Преподаватели{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem; color: #667eea;">Наши преподаватели</h1>
+
+{% if teachers %}
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+    {% for teacher in teachers %}
+    <div style="background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+         {% if teacher.photo %}
+            <img src="{{ teacher.photo.url }}" alt="{{ teacher.first_name }}"
+                 style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+        {% elif teacher.photo_url %}
+            <img src="{{ teacher.photo_url }}" alt="{{ teacher.first_name }}"
+                 style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+        {% else %}
+            <div style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                👨‍🏫
+            </div>
+        {% endif %}
+
+        <h3 style="color: #667eea; margin-bottom: 0.5rem;">{{ teacher.last_name }} {{ teacher.first_name }}</h3>
+
+        {% if teacher.description %}
+        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">{{ teacher.description|truncatewords:15 }}</p>
+        {% endif %}
+
+        <p style="color: #999; font-size: 0.9rem; margin-bottom: 1rem;">📧 {{ teacher.email }}</p>
+
+        <a href="{% url 'teacher_detail' teacher.teacher_id %}" class="btn">Профиль</a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div style="text-align: center; padding: 3rem;">
+    <p style="font-size: 1.2rem; color: #999;">Преподаватели пока не добавлены</p>
+</div>
+{% endif %}
+{% endblock %}

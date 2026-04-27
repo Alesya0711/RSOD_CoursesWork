@@ -1,0 +1,54 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Редактировать отзыв{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 800px;">
+    <h2 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Редактировать отзыв</h2>
+
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <p><strong>Абитуриент:</strong> {{ feedback.abiturient.last_name }} {{ feedback.abiturient.first_name }}</p>
+        <p><strong>Курс:</strong> {{ feedback.course.name }}</p>
+        <p><strong>Дата:</strong> {{ feedback.created_at|date:"d.m.Y H:i" }}</p>
+    </div>
+
+    <!-- ← ← ← Рейтинг только для просмотра -->
+    <div style="background: #e7f3ff; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
+        <p style="color: #667eea; margin-bottom: 0.5rem;"><strong>⭐ Рейтинг:</strong></p>
+        <div style="color: #ffc107; font-size: 1.5rem;">
+            {% for i in "12345"|make_list %}
+                {% if forloop.counter <= feedback.rating %}
+                    <span style="color: #ffc107;">★</span>
+                {% else %}
+                    <span style="color: #ddd;">★</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <small style="color: #999;">Рейтинг установлен абитуриентом при создании отзыва</small>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Комментарий</label>
+            <textarea name="comment" class="form-control" rows="4" required>{{ feedback.comment }}</textarea>
+            <small style="color: #999;">Максимум 1000 символов</small>
+        </div>
+
+        <div class="form-group">
+            <label>Статус модерации</label>
+            <select name="status" class="form-control">
+                <option value="pending" {% if feedback.status == 'pending' %}selected{% endif %}>На модерации ⏳</option>
+                <option value="approved" {% if feedback.status == 'approved' %}selected{% endif %}>Одобрен ✅</option>
+                <option value="rejected" {% if feedback.status == 'rejected' %}selected{% endif %}>Отклонён ❌</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="{% url 'admin_feedbacks' %}" class="btn" style="background: #6c757d;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Добавить школу{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Добавить школу</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Название школы</label>
+            <input type="text" name="name" class="form-control" placeholder="МБОУ СОШ №..." required>
+        </div>
+
+        <div class="form-group">
+            <label>Адрес</label>
+            <input type="text" name="address" class="form-control" placeholder="г. Город, ул. Улица, д. 1" required>
+        </div>
+
+        <div class="form-group">
+            <label>Директор</label>
+            <input type="text" name="director_last_name" placeholder="Фамилия" required>
+            <input type="text" name="director_first_name" placeholder="Имя" required>
+            <input type="text" name="director_middle_name" placeholder="Отчество" required>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="{% url 'admin_schools' %}" class="btn" style="background: #6c757d;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

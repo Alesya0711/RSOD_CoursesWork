@@ -1,0 +1,184 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="color: #667eea; margin: 0;">Личный кабинет</h1>
+        <a href="{% url 'edit_profile' %}" class="btn btn-small">
+            Редактировать
+        </a>
+    </div>
+
+    <!-- Информация о пользователе -->
+    <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #333; margin-bottom: 1.5rem;">Информация о пользователе</h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                {% if abiturient.photo %}
+                    <img src="{{ abiturient.photo.url }}" alt="{{ abiturient.first_name }}"
+                         style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid #667eea;">
+                {% else %}
+                    <div style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                        👤
+                    </div>
+                {% endif %}
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Логин</p>
+                <p style="font-weight: bold; color: #333;">{{ user.username }}</p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Email</p>
+                <p style="font-weight: bold; color: #333;">{{ user.email }}</p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Имя</p>
+                <p style="font-weight: bold; color: #333;">{{ user.first_name }}</p>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Фамилия</p>
+                <p style="font-weight: bold; color: #333;">{{ user.last_name }}</p>
+            </div>
+        </div>
+
+        {% if abiturient %}
+        <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee;">
+            <h3 style="color: #667eea; margin-bottom: 1rem;">Информация абитуриента</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Телефон</p>
+                    <p style="font-weight: bold; color: #333;">{{ abiturient.phone|default:"Не указан" }}</p>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Класс</p>
+                    <p style="font-weight: bold; color: #333;">{{ abiturient.class_name|default:"Не указан" }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Информация о родителе -->
+        {% if parent %}
+        <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">Информация о родителе</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Фамилия</p>
+                    <p style="font-weight: bold; color: #333;">{{ parent.last_name }}</p>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Имя</p>
+                    <p style="font-weight: bold; color: #333;">{{ parent.first_name }}</p>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Телефон</p>
+                    <p style="font-weight: bold; color: #333;">{{ parent.phone }}</p>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px; grid-column: 1 / -1;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Адрес</p>
+                    <p style="font-weight: bold; color: #333;">{{ parent.address }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Информация о школе -->
+        {% if school %}
+        <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">Информация о школе</h2>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Название</p>
+                    <p style="font-weight: bold; color: #333;">{{ school.name }}</p>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Адрес</p>
+                    <p style="font-weight: bold; color: #333;">{{ school.address }}</p>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 5px;">
+                    <p style="color: #999; font-size: 0.9rem; margin-bottom: 0.25rem;">Директор</p>
+                    <p style="font-weight: bold; color: #333;">{{ school.director_full_name }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    <!-- Записи на курсы -->
+    <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #667eea; margin-bottom: 1.5rem;">Мои курсы</h2>
+
+        {% if records %}
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for record in records %}
+            <div style="border: 1px solid #eee; border-radius: 10px; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="color: #667eea; margin-bottom: 0.5rem;">{{ record.course.name }}</h3>
+                    <p style="color: #999; font-size: 0.9rem;">
+                        Статус: <span style="color: #28a745; font-weight: bold;">{{ record.status }}</span>
+                    </p>
+                    <p style="color: #999; font-size: 0.9rem;">
+                        Преподаватель: {{ record.course.teacher.last_name }} {{ record.course.teacher.first_name }}
+                    </p>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <a href="{% url 'course_detail' record.course.course_id %}" class="btn">Курс</a>
+                    <a href="{% url 'add_feedback' record.course.course_id %}" class="btn" style="background: #28a745;">Отзыв</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #999; text-align: center;">Вы ещё не записаны ни на один курс</p>
+        <div style="text-align: center; margin-top: 1rem;">
+            <a href="{% url 'index' %}" class="btn">Выбрать курс</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Отзывы -->
+    <div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h2 style="color: #667eea; margin-bottom: 1.5rem;">Мои отзывы</h2>
+
+        {% if feedbacks %}
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+            {% for feedback in feedbacks %}
+            <div style="border: 1px solid #eee; border-radius: 10px; padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <h3 style="color: #667eea;">{{ feedback.course.name }}</h3>
+                    <div style="color: #ffc107; font-size: 1.2rem;">
+                        {% for i in "12345"|make_list %}
+                            {% if forloop.counter <= feedback.rating %}★{% else %}<span style="color: #ddd;">★</span>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                <p style="color: #666; line-height: 1.5;">{{ feedback.comment }}</p>
+                <p style="color: #999; font-size: 0.85rem; margin-top: 0.5rem;">
+                    {{ feedback.created_at|date:"d.m.Y H:i" }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: #999; text-align: center;">Вы ещё не оставляли отзывы</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

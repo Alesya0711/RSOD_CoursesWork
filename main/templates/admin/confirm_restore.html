@@ -1,0 +1,35 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Восстановление{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 600px;">
+    <h2 style="color: #28a745; margin-bottom: 1.5rem; text-align: center;">Восстановление</h2>
+
+    <div style="background: #d4edda; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <p style="color: #155724; margin: 0;">
+            <strong>Вы собираетесь восстановить:</strong><br>
+            {% if object_type == 'course' %}
+                Курс "{{ object.name }}"
+            {% elif object_type == 'teacher' %}
+                Преподавателя "{{ object.last_name }} {{ object.first_name }}"
+            {% else %}
+                Абитуриента "{{ object.last_name }} {{ object.first_name }}"
+            {% endif %}
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn" style="background: #28a745;">
+                Восстановить
+            </button>
+            <a href="{% if object_type == 'course' %}{% url 'admin_archive_courses' %}{% elif object_type == 'teacher' %}{% url 'admin_archive_teachers' %}{% else %}{% url 'admin_archive_students' %}{% endif %}"
+               class="btn" style="background: #6c757d;">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

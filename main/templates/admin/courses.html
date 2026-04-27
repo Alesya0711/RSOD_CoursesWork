@@ -1,0 +1,59 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Курсы{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1 style="color: #667eea;">Курсы</h1>
+    <a href="{% url 'admin_add_course' %}" class="btn">Добавить курс</a>
+</div>
+
+{% if courses %}
+<table>
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Преподаватель</th>
+            <th>Уровень</th>
+            <th>Цена</th>
+            <th>Статус</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for course in courses %}
+        <tr>
+            <td>{{ course.name }}</td>
+            <td>{{ course.teacher.last_name }} {{ course.teacher.first_name }}</td>
+            <td>{{ course.level }}</td>
+            <td>{{ course.price }} ₽</td>
+            <td>
+            {% if course.is_activ %}
+                <span style="color: #28a745;">Активен</span>
+            {% else %}
+                <span style="color: #dc3545;">Архивирован</span>
+            {% endif %}
+        </td>
+        <td>
+            <div style="display: flex; gap: 0.5rem;">
+                <a href="{% url 'admin_edit_course' course.course_id %}"
+                   class="btn btn-small">✏️</a>
+
+                <a href="{% url 'admin_toggle_course_archive' course.course_id %}"
+                   class="btn btn-small"
+                   style="background: {% if course.is_activ %}#ffc107{% else %}#28a745{% endif %};">
+                    {% if course.is_activ %}🗄️{% else %}♻️{% endif %}
+                </a>
+            </div>
+        </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div style="background: white; border-radius: 10px; padding: 3rem; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <p style="color: #999; font-size: 1.1rem;">Курсов пока нет</p>
+    <a href="{% url 'admin_add_course' %}" class="btn" style="margin-top: 1rem;">Добавить курс</a>
+</div>
+{% endif %}
+{% endblock %}

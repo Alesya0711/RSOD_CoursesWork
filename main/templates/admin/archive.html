@@ -1,0 +1,40 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Архив{% endblock %}
+
+{% block content %}
+<h1 style="color: #667eea; margin-bottom: 2rem;">Архив</h1>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <a href="{% url 'admin_archive_courses' %}" style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-decoration: none; color: #333; text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">📚</div>
+        <h3 style="margin-bottom: 0.5rem;">Курсы</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #667eea;">{{ archived_courses_count }}</p>
+        <p style="color: #999; font-size: 0.9rem;">архивировано</p>
+    </a>
+
+    <a href="{% url 'admin_archive_teachers' %}" style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-decoration: none; color: #333; text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">👨‍🏫</div>
+        <h3 style="margin-bottom: 0.5rem;">Преподаватели</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #667eea;">{{ archived_teachers_count }}</p>
+        <p style="color: #999; font-size: 0.9rem;">архивировано</p>
+    </a>
+
+    <a href="{% url 'admin_archive_students' %}" style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-decoration: none; color: #333; text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">👨‍🎓</div>
+        <h3 style="margin-bottom: 0.5rem;">Абитуриенты</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #667eea;">{{ archived_students_count }}</p>
+        <p style="color: #999; font-size: 0.9rem;">архивировано</p>
+    </a>
+</div>
+
+<div style="background: #e7f3ff; padding: 1.5rem; border-radius: 10px; border-left: 4px solid #667eea;">
+    <h3 style="color: #667eea; margin-bottom: 1rem;">Информация</h3>
+    <ul style="color: #666; line-height: 2;">
+        <li>При архивации преподавателя все его курсы автоматически архивируются</li>
+        <li>Нельзя восстановить курс, если его преподаватель архивирован</li>
+        <li>Архивированные курсы не отображаются на главной странице</li>
+        <li>Архивированные абитуриенты не отображаются в списке студентов</li>
+    </ul>
+</div>
+{% endblock %}

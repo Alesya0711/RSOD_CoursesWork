@@ -1,0 +1,34 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Запись на курс{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Запись на курс</h1>
+
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <h3 style="color: #333; margin-bottom: 0.5rem;">{{ course.name }}</h3>
+        <p style="color: #666;">{{ course.teacher.last_name }} {{ course.teacher.first_name }}</p>
+        <p style="color: #667eea; font-weight: bold; margin-top: 0.5rem;">{{ course.price }} ₽</p>
+    </div>
+
+    <div style="background: #fff3cd; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #ffc107;">
+        <p style="color: #856404; margin: 0; font-size: 0.9rem;">
+            <strong>Информация:</strong> После нажатия кнопки "Записаться" ваша заявка будет отправлена
+            на рассмотрение. Статус заявки можно посмотреть в личном кабинете.
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem; font-size: 1.1rem;">
+            Записаться на курс
+        </button>
+    </form>
+
+    <p style="text-align: center; margin-top: 1.5rem;">
+        <a href="{% url 'course_detail' course.course_id %}" style="color: #667eea;">← Назад к курсу</a>
+    </p>
+</div>
+{% endblock %}

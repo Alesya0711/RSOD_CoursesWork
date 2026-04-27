@@ -1,0 +1,73 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Главная - Админ-панель{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem; color: #667eea;">Панель управления</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ courses_count }}</div>
+        <div class="stat-label">Курсов</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-number">{{ teachers_count }}</div>
+        <div class="stat-label">Преподавателей</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-number">{{ students_count }}</div>
+        <div class="stat-label">Абитуриентов</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-number">{{ schools_count }}</div>
+        <div class="stat-label">Школ</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-number">{{ records_count }}</div>
+        <div class="stat-label">Заявок</div>
+    </div>
+</div>
+
+<div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+    <h2 style="color: #667eea; margin-bottom: 1rem;">Управление контентом</h2>
+    <p style="color: #666; margin-bottom: 1.5rem;">Редактируйте информацию на сайте</p>
+    <a href="{% url 'admin_edit_about' %}" class="btn">Редактировать страницу "О нас"</a>
+</div>
+
+<div style="background: white; border-radius: 10px; padding: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <h2 style="color: #667eea; margin-bottom: 1.5rem;">Последние заявки</h2>
+
+    {% if recent_records %}
+    <table>
+        <thead>
+            <tr>
+                <th>Абитуриент</th>
+                <th>Курс</th>
+                <th>Статус</th>
+                <th>Дата</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in recent_records %}
+            <tr>
+                <td>{{ record.abiturient.last_name }} {{ record.abiturient.first_name }}</td>
+                <td>{{ record.course.name }}</td>
+                <td>
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 5px; background: {% if record.status == 'Подтверждена' %}#d4edda{% elif record.status == 'В обработке' %}#fff3cd{% else %}#f8d7da{% endif %}; color: #333;">
+                        {{ record.status }}
+                    </span>
+                </td>
+                <td>{{ record.created_at|date:"d.m.Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #999; text-align: center;">Заявок пока нет</p>
+    {% endif %}
+</div>
+{% endblock %}

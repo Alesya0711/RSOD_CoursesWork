@@ -1,0 +1,32 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Вход</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% for field in form %}
+        <div style="margin-bottom: 1rem;">
+            {{ field }}
+            {% if field.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ field.errors|join:", " }}
+            </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">
+            Войти
+        </button>
+    </form>
+
+    <p style="text-align: center; margin-top: 1.5rem; color: #666;">
+        Нет аккаунта? <a href="{% url 'register' %}" style="color: #667eea;">Зарегистрироваться</a>
+    </p>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Изменить статус заявки{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Изменить статус заявки</h2>
+
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <p style="margin-bottom: 0.5rem;"><strong>Абитуриент:</strong> {{ record.abiturient.last_name }} {{ record.abiturient.first_name }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Email:</strong> {{ record.abiturient.email }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Курс:</strong> {{ record.course.name }}</p>
+        <p style="margin-bottom: 0.5rem;"><strong>Преподаватель:</strong> {{ record.course.teacher.last_name }} {{ record.course.teacher.first_name }}</p>
+        <p><strong>Текущий статус:</strong>
+            <span style="padding: 0.25rem 0.75rem; border-radius: 5px; background: {% if record.status == 'Подтверждена' %}#d4edda{% elif record.status == 'В обработке' %}#fff3cd{% else %}#f8d7da{% endif %}; color: #333;">
+                {{ record.status }}
+            </span>
+        </p>
+    </div>
+
+    <div style="background: #e7f3ff; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
+        <p style="color: #0c5460; margin: 0; font-size: 0.9rem;">
+            <strong> Информация:</strong> После изменения статуса абитуриенту будет отправлено email-уведомление.
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Новый статус</label>
+            <select name="status" class="form-control" required>
+                <option value="В обработке" {% if record.status == 'В обработке' %}selected{% endif %}>В обработке</option>
+                <option value="Подтверждена" {% if record.status == 'Подтверждена' %}selected{% endif %}>Подтверждена</option>
+                <option value="Отклонена" {% if record.status == 'Отклонена' %}selected{% endif %}>Отклонена</option>
+                <option value="Завершена" {% if record.status == 'Завершена' %}selected{% endif %}>Завершена</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-success">Сохранить и отправить уведомление</button>
+            <a href="{% url 'admin_records' %}" class="btn" style="background: #6c757d;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

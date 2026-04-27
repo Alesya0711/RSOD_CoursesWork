@@ -1,0 +1,161 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Главная - Курсы{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
+    <h1 style="color: #667eea; margin-bottom: 2rem; text-align: center;">Доступные курсы</h1>
+
+    <!-- Панель фильтрации -->
+    <div style="background: white; border-radius: 10px; padding: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 1.5rem;">
+        <form method="get" action="{% url 'index' %}">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
+
+                <!-- Поиск -->
+                <div>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Поиск..."
+                           value="{{ search_query }}"
+                           style="padding: 0.5rem; font-size: 0.9rem;">
+                </div>
+
+                <!-- Фильтр по уровню -->
+                <div>
+                    <select name="level" class="form-control" style="padding: 0.5rem; font-size: 0.9rem;">
+                        <option value="">Все уровни</option>
+                        {% for level in levels %}
+                        <option value="{{ level }}" {% if current_level == level %}selected{% endif %}>
+                            {{ level }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Сортировка по цене -->
+                <div>
+                    <select name="price_sort" class="form-control" style="padding: 0.5rem; font-size: 0.9rem;">
+                        <option value="">Цена</option>
+                        <option value="low_to_high" {% if current_price_sort == 'low_to_high' %}selected{% endif %}>
+                            ↑ Дешёвые
+                        </option>
+                        <option value="high_to_low" {% if current_price_sort == 'high_to_low' %}selected{% endif %}>
+                            ↓ Дорогие
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Сортировка по рейтингу -->
+                <div>
+                    <select name="rating_sort" class="form-control" style="padding: 0.5rem; font-size: 0.9rem;">
+                        <option value="">Рейтинг</option>
+                        <option value="high_to_low" {% if current_rating_sort == 'high_to_low' %}selected{% endif %}>
+                            ↑ Высокий
+                        </option>
+                        <option value="low_to_high" {% if current_rating_sort == 'low_to_high' %}selected{% endif %}>
+                            ↓ Низкий
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Кнопки -->
+                <div style="display: flex; gap: 0.5rem;">
+                    <button type="submit" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; flex: 1;">
+                        Применить
+                    </button>
+                    <a href="{% url 'index' %}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem; background: #6c757d;">
+                        ✕
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Информация о результатах -->
+    <div style="margin-bottom: 1.5rem; color: #666;">
+        <p>Найдено курсов: <strong>{{ courses.count }}</strong></p>
+    </div>
+
+    <!-- Список курсов -->
+    {% if courses %}
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem;">
+        {% for course in courses %}
+        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.3s;"
+             onmouseover="this.style.transform='translateY(-5px)'"
+             onmouseout="this.style.transform='translateY(0)'">
+
+           <!-- Фото курса -->
+            {% if course.photo %}
+                <img src="{{ course.photo.url }}" alt="{{ course.name }}"
+                     style="width: 100%; height: 200px; object-fit: cover;">
+            {% elif course.photo_url %}
+                <img src="{{ course.photo_url }}" alt="{{ course.name }}"
+                     style="width: 100%; height: 200px; object-fit: cover;">
+            {% else %}
+                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                    📚
+                </div>
+            {% endif %}
+
+            <!-- Информация о курсе -->
+            <div style="padding: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="background: #667eea; color: white; padding: 0.25rem 0.75rem; border-radius: 5px; font-size: 0.85rem;">
+                        {{ course.level }}
+                    </span>
+
+                    <!-- Рейтинг -->
+                    {% if course.avg_rating %}
+                    <span style="color: #ffc107; font-size: 1.1rem;">
+                        ⭐ {{ course.avg_rating|floatformat:1 }}
+                    </span>
+                    {% else %}
+                    <span style="color: #999; font-size: 0.85rem;">
+                        Нет отзывов
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h3 style="color: #333; margin-bottom: 0.5rem;">{{ course.name }}</h3>
+
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                    👨‍🏫 {{ course.teacher.last_name }} {{ course.teacher.first_name }}
+                </p>
+
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5;">
+                    {{ course.description|truncatewords:20 }}
+                </p>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="color: #667eea; font-size: 1.25rem; font-weight: bold;">
+                        {{ course.price }} ₽
+                    </span>
+
+                    <!-- Информация о местах -->
+                    {% if course.max_students %}
+                    <span style="color: #666; font-size: 0.85rem;">
+                        📊 {{ course.get_enrolled_count }}/{{ course.max_students }} мест
+                    </span>
+                    {% endif %}
+                </div>
+
+                <a href="{% url 'course_detail' course.course_id %}" class="btn"
+                   style="width: 100%; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    Подробнее
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="background: white; border-radius: 10px; padding: 3rem; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <p style="color: #999; font-size: 1.1rem; margin-bottom: 1rem;">
+            Курсы не найдены
+        </p>
+        <a href="{% url 'index' %}" class="btn" style="background: #667eea;">
+            Сбросить фильтры
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

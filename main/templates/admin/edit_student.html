@@ -1,0 +1,130 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Редактировать абитуриента{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 900px;">
+    <h2 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Редактировать абитуриента</h2>
+
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <p style="color: #666; text-align: center;">
+            <strong>Абитуриент:</strong> {{ abiturient.last_name }} {{ abiturient.first_name }} |
+            <strong>ID:</strong> {{ abiturient.abitur_id }}
+        </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Данные абитуриента -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+            <h3 style="margin: 0; font-size: 1.2rem;">Данные абитуриента</h3>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label>Имя</label>
+                <input type="text" name="first_name" class="form-control" value="{{ abiturient.first_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Фамилия</label>
+                <input type="text" name="last_name" class="form-control" value="{{ abiturient.last_name }}" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" value="{{ abiturient.email }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Телефон</label>
+            <input type="text" name="phone" class="form-control" value="{{ abiturient.phone|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Класс</label>
+            <input type="text" name="class_name" class="form-control" value="{{ abiturient.class_name|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Школа</label>
+            <select name="school_id" class="form-control">
+                <option value="">-- Выберите школу --</option>
+                {% for school in schools %}
+                <option value="{{ school.school_id }}" {% if school.school_id == abiturient.school_id %}selected{% endif %}>
+                    {{ school.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Фотография абитуриента</label>
+            {% if course.photo %}
+            <div style="margin-bottom: 1rem;">
+                <img src="{{ course.photo.url }}" alt="{{ course.name }}"
+                     style="max-width: 200px; border-radius: 10px; border: 2px solid #ddd;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" name="photo-clear"> Удалить текущее фото
+                </label>
+            </div>
+            {% endif %}
+            <input type="file" name="photo" class="form-control" accept="image/*">
+            <small style="color: #999;">Форматы: JPG, PNG, GIF. Макс. размер: 5MB</small>
+        </div>
+
+        <!-- Данные родителя -->
+        <div style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; padding: 1rem; border-radius: 10px; margin: 2rem 0 1.5rem;">
+            <h3 style="margin: 0; font-size: 1.2rem;">Данные родителя</h3>
+        </div>
+
+        {% if parent %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label>Имя родителя</label>
+                <input type="text" name="parent_first_name" class="form-control" value="{{ parent.first_name }}" required>
+            </div>
+
+            <div class="form-group">
+                <label>Фамилия родителя</label>
+                <input type="text" name="parent_last_name" class="form-control" value="{{ parent.last_name }}" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Телефон родителя</label>
+            <input type="text" name="parent_phone" class="form-control" value="{{ parent.phone|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Паспортные данные</label>
+            <input type="text" name="parent_pasport" class="form-control" value="{{ parent.pasport|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label>ИНН</label>
+            <input type="text" name="parent_inn" class="form-control" value="{{ parent.inn|default:'' }}">
+        </div>
+
+        <div class="form-group">
+            <label>Адрес</label>
+            <input type="text" name="parent_address" class="form-control" value="{{ parent.address|default:'' }}">
+        </div>
+        {% else %}
+        <p style="color: #999; text-align: center; padding: 1rem;">
+            У этого абитуриента нет привязанного родителя. Добавьте родителя через отдельную форму.
+        </p>
+        {% endif %}
+
+        <!-- Кнопки -->
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success" style="flex: 1; max-width: 200px;">Сохранить</button>
+            <a href="{% url 'admin_students' %}" class="btn" style="background: #6c757d; flex: 1; max-width: 200px; text-align: center;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

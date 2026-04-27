@@ -1,0 +1,151 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Редактировать "О нас"{% endblock %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <h1 style="color: #667eea; margin-bottom: 2rem; text-align: center;">Редактировать страницу "О нас"</h1>
+
+    <div style="background: #fff3cd; padding: 1rem; border-radius: 10px; margin-bottom: 2rem; border-left: 4px solid #ffc107;">
+        <p style="color: #856404; margin: 0;">
+            <strong>Информация:</strong> Здесь вы можете изменить основную информацию о школе,
+            которая отображается на странице "О нас".
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Основная информация -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">Основная информация</h2>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Заголовок страницы</label>
+                <input type="text" name="page_title" class="form-control" value="{{ about.page_title }}" required>
+                <small style="color: #999;">Например: О нашей школе</small>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Главный заголовок</label>
+                <input type="text" name="main_heading" class="form-control" value="{{ about.main_heading }}" required>
+                <small style="color: #999;">Например: Образовательная школа подготовки к ОГЭ и ЕГЭ</small>
+            </div>
+        </div>
+
+        <!-- Карточки -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">Карточки</h2>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Заголовок: Адрес</label>
+                    <input type="text" name="address_title" class="form-control" value="{{ about.address_title }}">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Содержимое: Адрес</label>
+                    <textarea name="address_content" class="form-control" rows="3">{{ about.address_content }}</textarea>
+                    <small style="color: #999;">Можно использовать переносы строк</small>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Заголовок: Директор</label>
+                    <input type="text" name="director_title" class="form-control" value="{{ about.director_title }}">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Содержимое: Директор</label>
+                    <textarea name="director_content" class="form-control" rows="3">{{ about.director_content }}</textarea>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Заголовок: Преподаватели</label>
+                    <input type="text" name="teachers_title" class="form-control" value="{{ about.teachers_title }}">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Содержимое: Преподаватели</label>
+                    <textarea name="teachers_content" class="form-control" rows="3">{{ about.teachers_content }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Преимущества -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">Преимущества</h2>
+
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Заголовок раздела</label>
+                <input type="text" name="advantages_heading" class="form-control" value="{{ about.advantages_heading }}">
+            </div>
+
+            {% for i in "123456"|make_list %}
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
+                <h3 style="color: #667eea; margin-bottom: 1rem;">Преимущество {{ i }}</h3>
+
+                <div style="display: grid; grid-template-columns: 100px 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Иконка</label>
+                        <input type="text" name="adv{{ i }}_icon" class="form-control" value="{% if i == '1' %}🎯{% elif i == '2' %}👨‍🏫{% elif i == '3' %}📈{% elif i == '4' %}📚{% elif i == '5' %}⏰{% else %}🎓{% endif %}" style="font-size: 1.5rem; text-align: center;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Заголовок</label>
+                        <input type="text" name="adv{{ i }}_title" class="form-control" value="{% if i == '1' %}{{ about.adv1_title }}{% elif i == '2' %}{{ about.adv2_title }}{% elif i == '3' %}{{ about.adv3_title }}{% elif i == '4' %}{{ about.adv4_title }}{% elif i == '5' %}{{ about.adv5_title }}{% else %}{{ about.adv6_title }}{% endif %}">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Описание</label>
+                        <input type="text" name="adv{{ i }}_desc" class="form-control" value="{% if i == '1' %}{{ about.adv1_desc }}{% elif i == '2' %}{{ about.adv2_desc }}{% elif i == '3' %}{{ about.adv3_desc }}{% elif i == '4' %}{{ about.adv4_desc }}{% elif i == '5' %}{{ about.adv5_desc }}{% else %}{{ about.adv6_desc }}{% endif %}">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Контакты -->
+        <div style="background: white; border-radius: 10px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+            <h2 style="color: #667eea; margin-bottom: 1.5rem;">Контакты</h2>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Заголовок раздела</label>
+                <input type="text" name="contacts_heading" class="form-control" value="{{ about.contacts_heading }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Адрес</label>
+                <input type="text" name="contact_address" class="form-control" value="{{ about.contact_address }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Директор</label>
+                <input type="text" name="contact_director" class="form-control" value="{{ about.contact_director }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Телефон</label>
+                <input type="text" name="contact_phone" class="form-control" value="{{ about.contact_phone }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Email</label>
+                <input type="email" name="contact_email" class="form-control" value="{{ about.contact_email }}">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Режим работы</label>
+                <input type="text" name="contact_schedule" class="form-control" value="{{ about.contact_schedule }}">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-success" style="padding: 1rem 3rem; font-size: 1.1rem;">
+                Сохранить изменения
+            </button>
+            <a href="{% url 'about' %}" class="btn" style="background: #6c757d; padding: 1rem 2rem;">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Оставить отзыв{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 700px;">
+    <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Оставить отзыв</h1>
+
+    <div style="background: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <p style="margin: 0;"><strong>Курс:</strong> {{ course.name }}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Ваша оценка <span style="color: #dc3545;">*</span></label>
+            {{ form.rating }}
+            {% if form.rating.errors %}
+            <div style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.rating.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>Комментарий</label>
+            {{ form.comment }}
+            {% if form.comment.errors %}
+            <div style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.comment.errors|join:", " }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success" style="font-size: 1rem; padding: 0.75rem 2rem;">
+                Отправить отзыв
+            </button>
+            <a href="{% url 'course_detail' course.course_id %}" class="btn" style="background: #6c757d;">
+                Отмена
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

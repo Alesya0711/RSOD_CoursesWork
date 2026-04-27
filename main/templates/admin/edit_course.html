@@ -1,0 +1,88 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Редактировать курс{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Редактировать курс</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Название курса</label>
+            <input type="text" name="name" class="form-control" value="{{ course.name }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Описание</label>
+            <textarea name="description" class="form-control" rows="4" required>{{ course.description }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Преподаватель</label>
+            <select name="teacher_id" class="form-control" required>
+                {% for teacher in teachers %}
+                <option value="{{ teacher.teacher_id }}" {% if teacher.teacher_id == course.teacher_id %}selected{% endif %}>
+                    {{ teacher.last_name }} {{ teacher.first_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Уровень</label>
+            <input type="text" name="level" class="form-control" value="{{ course.level }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Цена (₽)</label>
+            <input type="number" name="price" class="form-control" step="0.01" value="{{ course.price }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Максимальное количество студентов</label>
+            <input type="number" name="max_students" class="form-control"
+                   value="{{ course.max_students|default:15 }}" min="1" required>
+            <small style="color: #999;">Сколько человек может быть записано на курс</small>
+        </div>
+
+        <div class="form-group">
+            <label>Дата начала</label>
+            <input type="date" name="start_date" class="form-control" value="{{ course.start_date|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Дата окончания</label>
+            <input type="date" name="end_date" class="form-control" value="{{ course.end_date|date:'Y-m-d' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Расписание</label>
+            <input type="text" name="raspisanie" class="form-control" value="{{ course.raspisanie }}">
+        </div>
+
+        <div class="form-group">
+            <label>Фотография курса</label>
+            {% if course.photo %}
+            <div style="margin-bottom: 1rem;">
+                <img src="{{ course.photo.url }}" alt="{{ course.name }}"
+                     style="max-width: 200px; border-radius: 10px; border: 2px solid #ddd;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" name="photo-clear"> Удалить текущее фото
+                </label>
+            </div>
+            {% endif %}
+            <input type="file" name="photo" class="form-control" accept="image/*">
+            <small style="color: #999;">Форматы: JPG, PNG, GIF. Макс. размер: 5MB</small>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="{% url 'admin_courses' %}" class="btn" style="background: #6c757d;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

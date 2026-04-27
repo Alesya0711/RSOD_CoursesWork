@@ -1,0 +1,100 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Отзывы{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1 style="color: #667eea;">Отзывы</h1>
+</div>
+
+<!-- Статистика -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div style="background: white; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <p style="color: #999; margin-bottom: 0.5rem;">Всего</p>
+        <p style="font-size: 2rem; font-weight: bold; color: #667eea;">{{ total_count }}</p>
+    </div>
+    <div style="background: #fff3cd; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <p style="color: #999; margin-bottom: 0.5rem;">На модерации</p>
+        <p style="font-size: 2rem; font-weight: bold; color: #ffc107;">{{ pending_count }}</p>
+    </div>
+    <div style="background: #d4edda; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <p style="color: #999; margin-bottom: 0.5rem;">Одобрены</p>
+        <p style="font-size: 2rem; font-weight: bold; color: #28a745;">{{ approved_count }}</p>
+    </div>
+    <div style="background: #f8d7da; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center;">
+        <p style="color: #999; margin-bottom: 0.5rem;">Отклонены</p>
+        <p style="font-size: 2rem; font-weight: bold; color: #dc3545;">{{ rejected_count }}</p>
+    </div>
+</div>
+
+<!-- Фильтры -->
+<div style="background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+    <form method="get" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <select name="status" class="form-control" style="flex: 1; min-width: 200px;">
+            <option value="">Все статусы</option>
+            <option value="pending" {% if current_status == 'pending' %}selected{% endif %}>На модерации</option>
+            <option value="approved" {% if current_status == 'approved' %}selected{% endif %}>Одобрены</option>
+            <option value="rejected" {% if current_status == 'rejected' %}selected{% endif %}>Отклонены</option>
+        </select>
+        <button type="submit" class="btn" style="background: #667eea;">Фильтр</button>
+        <a href="{% url 'admin_feedbacks' %}" class="btn" style="background: #6c757d;">Сброс</a>
+    </form>
+</div>
+
+<!-- Таблица отзывов -->
+{% if feedbacks %}
+<table>
+    <thead>
+        <tr>
+            <th>Абитуриент</th>
+            <th>Курс</th>
+            <th>Рейтинг</th>
+            <th>Комментарий</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for feedback in feedbacks %}
+        <tr>
+            <td>{{ feedback.abiturient.last_name }} {{ feedback.abiturient.first_name }}</td>
+            <td>{{ feedback.course.name }}</td>
+            <td>
+                <span style="color: #ffc107;">
+                    {% for i in "12345"|make_list %}
+                        {% if forloop.counter <= feedback.rating %}★{% else %}<span style="color: #ddd;">★</span>{% endif %}
+                    {% endfor %}
+                </span>
+            </td>
+            <td style="max-width: 300px;">{{ feedback.comment|truncatewords:10|default:"-" }}</td>
+            <td>
+                {% if feedback.status == 'pending' %}
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 5px; background: #fff3cd; color: #856404;">На модерации</span>
+                {% elif feedback.status == 'approved' %}
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 5px; background: #d4edda; color: #155724;">Одобрен</span>
+                {% else %}
+                    <span style="padding: 0.25rem 0.75rem; border-radius: 5px; background: #f8d7da; color: #721c24;">Отклонён</span>
+                {% endif %}
+            </td>
+            <td>{{ feedback.created_at|date:"d.m.Y H:i" }}</td>
+            <td>
+                <div style="display: flex; gap: 0.5rem;">
+                    {% if feedback.status == 'pending' %}
+                        <a href="{% url 'admin_approve_feedback' feedback.feedback_id %}" class="btn btn-small" style="background: #28a745;">✅</a>
+                        <a href="{% url 'admin_reject_feedback' feedback.feedback_id %}" class="btn btn-small" style="background: #dc3545;">❌</a>
+                    {% endif %}
+                    <a href="{% url 'admin_edit_feedback' feedback.feedback_id %}" class="btn btn-small">✏️</a>
+                    <a href="{% url 'admin_delete_feedback' feedback.feedback_id %}" class="btn btn-small" style="background: #dc3545;">🗑️</a>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div style="background: white; border-radius: 10px; padding: 3rem; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+    <p style="color: #999; font-size: 1.1rem;">Отзывов пока нет</p>
+</div>
+{% endif %}
+{% endblock %}

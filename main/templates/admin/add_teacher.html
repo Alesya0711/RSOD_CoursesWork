@@ -1,0 +1,65 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Добавить преподавателя{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <h2 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Добавить преподавателя</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Логин (username)</label>
+            <input type="text" name="username" class="form-control" placeholder="Логин для входа" required>
+        </div>
+
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" name="password" class="form-control" placeholder="Пароль" required>
+        </div>
+
+        <div class="form-group">
+            <label>Имя</label>
+            <input type="text" name="first_name" class="form-control" placeholder="Имя" required>
+        </div>
+
+        <div class="form-group">
+            <label>Фамилия</label>
+            <input type="text" name="last_name" class="form-control" placeholder="Фамилия" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" placeholder="Email" required>
+        </div>
+
+        <div class="form-group">
+            <label>Описание</label>
+            <textarea name="description" class="form-control" rows="4" placeholder="Информация о преподавателе..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Фотография преподавателя</label>
+            {% if teacher.photo %}
+            <div style="margin-bottom: 1rem;">
+                <img src="{{ teacher.photo.url }}" alt="{{ teacher.first_name }}"
+                     style="max-width: 200px; border-radius: 10px; border: 2px solid #ddd;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" name="photo-clear"> Удалить текущее фото
+                </label>
+            </div>
+            {% endif %}
+            <input type="file" name="photo" class="form-control" accept="image/*">
+            <small style="color: #999;">Форматы: JPG, PNG, GIF. Макс. размер: 5MB</small>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn btn-success">Сохранить</button>
+            <a href="{% url 'admin_teachers' %}" class="btn" style="background: #6c757d;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

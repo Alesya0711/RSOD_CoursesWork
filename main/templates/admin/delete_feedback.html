@@ -1,0 +1,26 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Удалить отзыв{% endblock %}
+
+{% block content %}
+<div class="form-card" style="max-width: 600px;">
+    <h2 style="color: #dc3545; margin-bottom: 1.5rem; text-align: center;">Удалить отзыв</h2>
+
+    <div style="background: #f8d7da; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <p style="color: #721c24; margin: 0;">
+            <strong>Внимание!</strong> Вы собираетесь удалить отзыв от
+            <strong>{{ feedback.abiturient.last_name }} {{ feedback.abiturient.first_name }}</strong>
+            на курс <strong>"{{ feedback.course.name }}"</strong>.
+        </p>
+        <p style="color: #721c24; margin-top: 1rem;">Это действие нельзя отменить!</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+            <button type="submit" class="btn" style="background: #dc3545;">Да, удалить</button>
+            <a href="{% url 'admin_feedbacks' %}" class="btn" style="background: #6c757d;">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

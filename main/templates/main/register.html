@@ -1,0 +1,262 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="auth-container" style="max-width: 700px;">
+    <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Регистрация</h1>
+
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; font-size: 1.1rem;">Данные абитуриента</h3>
+    </div>
+
+    <form method="post" id="registerForm">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 1rem;">
+            {{ form.username }}
+            {% if form.username.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.username.errors|join:", " }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="margin-bottom: 1rem;">
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.first_name.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.last_name.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            {{ form.email }}
+            {% if form.email.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.email.errors|join:", " }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="margin-bottom: 1rem;">
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.phone.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                {{ form.class_name }}
+                {% if form.class_name.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.class_name.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Выбор школы -->
+        <div style="margin-bottom: 1rem;">
+            <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
+                Школа
+            </label>
+            {{ form.school_choice }}
+            {% if form.school_choice.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.school_choice.errors|join:", " }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                {{ form.add_new_school }}
+                <span style="color: #667eea; font-weight: 500;">Добавить новую школу (если нет в списке)</span>
+            </label>
+        </div>
+
+        <!-- Поля для новой школы (скрыты по умолчанию) -->
+        <div id="new_school_fields" style="display: none; background: #e7f3ff; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
+            <h4 style="color: #667eea; margin-bottom: 1rem;">Данные новой школы</h4>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
+                    {{ form.new_school_name.label }}
+                </label>
+                {{ form.new_school_name }}
+                {% if form.new_school_name.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.new_school_name.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
+                    {{ form.new_school_address.label }}
+                </label>
+                {{ form.new_school_address }}
+                {% if form.new_school_address.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.new_school_address.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
+                    {{ form.new_school_director.label }}
+                </label>
+                {{ form.new_school_director }}
+                {% if form.new_school_director.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.new_school_director.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="margin-bottom: 1rem;">
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.password1.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.password2.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Данные родителя -->
+        <div style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; padding: 1rem; border-radius: 10px; margin: 2rem 0 1.5rem;">
+            <h3 style="margin: 0; font-size: 1.1rem;">Данные родителя</h3>
+        </div>
+
+        <div style="background: #fff3cd; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #ffc107;">
+            <p style="color: #856404; margin: 0; font-size: 0.9rem;">
+                <strong>Важно:</strong> Если родитель уже регистрировал другого ребенка,
+                введите те же паспортные данные - запись будет найдена автоматически.
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div style="margin-bottom: 1rem;">
+                {{ form.parent_first_name }}
+                {% if form.parent_first_name.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.parent_first_name.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                {{ form.parent_last_name }}
+                {% if form.parent_last_name.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                    {{ form.parent_last_name.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            {{ form.parent_phone }}
+            {% if form.parent_phone.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.parent_phone.errors|join:", " }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            {{ form.parent_pasport }}
+            {% if form.parent_pasport.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.parent_pasport.errors|join:", " }}
+            </p>
+            {% endif %}
+            <small style="color: #999;">Серия и номер паспорта (например: 4501 123456)</small>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            {{ form.parent_inn }}
+            {% if form.parent_inn.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.parent_inn.errors|join:", " }}
+            </p>
+            {% endif %}
+            <small style="color: #999;">ИНН (12 цифр)</small>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            {{ form.parent_address }}
+            {% if form.parent_address.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+                {{ form.parent_address.errors|join:", " }}
+            </p>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">
+            Зарегистрироваться
+        </button>
+    </form>
+
+    <p style="text-align: center; margin-top: 1.5rem; color: #666;">
+        Уже есть аккаунт? <a href="{% url 'login' %}" style="color: #667eea;">Войти</a>
+    </p>
+</div>
+
+<script>
+function toggleSchoolFields() {
+    var checkbox = document.getElementById('id_add_new_school');
+    var fields = document.getElementById('new_school_fields');
+    var schoolSelect = document.getElementById('id_school_choice');
+
+    if (checkbox && fields) {
+        if (checkbox.checked) {
+            fields.style.display = 'block';
+            if (schoolSelect) {
+                schoolSelect.disabled = true;
+                schoolSelect.value = '';
+            }
+        } else {
+            fields.style.display = 'none';
+            if (schoolSelect) {
+                schoolSelect.disabled = false;
+            }
+        }
+    }
+}
+
+// Вызываем при загрузке страницы
+window.onload = function() {
+    toggleSchoolFields();
+};
+</script>
+{% endblock %}
