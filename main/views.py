@@ -120,6 +120,7 @@ def teacher_detail(request, teacher_id):
         'courses': courses,
     })
 
+
 # Регистрация
 def register(request):
     if request.method == 'POST':
@@ -130,9 +131,9 @@ def register(request):
                 user = form.save(commit=False)
                 user.save()
 
-                # 2. Получаем данные о родителе из формы
-                parent_pasport = form.cleaned_data.get('parent_pasport')
-                parent_inn = form.cleaned_data.get('parent_inn')
+                # 2. Получаем данные о родителе из формы (уже нормализованные)
+                parent_pasport = form.cleaned_data.get('parent_pasport')  # Только цифры
+                parent_inn = form.cleaned_data.get('parent_inn')  # Только цифры (12)
 
                 # 3. Ищем существующего родителя по паспорту и ИНН
                 parent = Parent.objects.filter(
@@ -145,7 +146,7 @@ def register(request):
                     parent = Parent.objects.create(
                         first_name=form.cleaned_data.get('parent_first_name'),
                         last_name=form.cleaned_data.get('parent_last_name'),
-                        phone=form.cleaned_data.get('parent_phone'),
+                        phone=form.cleaned_data.get('parent_phone'),  # Только цифры
                         pasport=parent_pasport,
                         inn=parent_inn,
                         addres=form.cleaned_data.get('parent_address'),
@@ -159,7 +160,16 @@ def register(request):
                     # Создаем новую школу
                     new_school_name = form.cleaned_data.get('new_school_name')
                     new_school_address = form.cleaned_data.get('new_school_address')
-                    new_school_director = form.cleaned_data.get('new_school_director')
+
+                    # 🔍 НОВЫЕ ПОЛЯ: директор разбит на 3 части
+                    new_school_director_last_name = form.cleaned_data.get('new_school_director_last_name')
+                    new_school_director_first_name = form.cleaned_data.get('new_school_director_first_name')
+                    new_school_director_middle_name = form.cleaned_data.get('new_school_director_middle_name', '')
+
+                    # Формируем полное ФИО для отображения (опционально)
+                    new_school_director_full = f"{new_school_director_last_name} {new_school_director_first_name}"
+                    if new_school_director_middle_name:
+                        new_school_director_full += f" {new_school_director_middle_name}"
 
                     # Проверяем, нет ли уже такой школы
                     existing_school = School.objects.filter(
@@ -171,11 +181,13 @@ def register(request):
                         school_id = existing_school.school_id
                         messages.info(request, 'Такая школа уже существует в базе, используем её')
                     else:
-                        # Создаем новую школу
+                        # Создаем новую школу с разбитыми полями директора
                         new_school = School.objects.create(
                             name=new_school_name,
                             address=new_school_address,
-                            director=new_school_director,
+                            director_last_name=new_school_director_last_name,
+                            director_first_name=new_school_director_first_name,
+                            director_middle_name=new_school_director_middle_name,
                         )
                         school_id = new_school.school_id
                 else:
@@ -190,7 +202,7 @@ def register(request):
                     first_name=user.first_name,
                     last_name=user.last_name,
                     email=user.email,
-                    phone=form.cleaned_data.get('phone'),
+                    phone=form.cleaned_data.get('phone'),  # Только цифры
                     class_name=form.cleaned_data.get('class_name'),
                     school_id=school_id,
                     parent_id=parent.parent_id,
@@ -490,32 +502,87 @@ def edit_profile(request):
     abiturient = Abiturient.objects.filter(user_id=user.id).first()
 
     if request.method == 'POST':
-        # Получаем данные из формы
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         email = request.POST.get('email', '').strip()
         phone = request.POST.get('phone', '').strip()
         class_name = request.POST.get('class_name', '').strip()
 
-        # Проверка обязательных полей
-        if not first_name or not last_name or not email:
-            messages.error(request, 'Имя, фамилия и email обязательны')
+        # Имя (только буквы)
+        if not first_name:
+            messages.error(request, 'Имя обязательно')
+            return redirect('edit_profile')
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', first_name):
+            messages.error(request, 'Имя должно содержать только буквы, пробелы и дефис')
+            return redirect('edit_profile')
+
+        # Фамилия (только буквы)
+        if not last_name:
+            messages.error(request, 'Фамилия обязательна')
+            return redirect('edit_profile')
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', last_name):
+            messages.error(request, 'Фамилия должна содержать только буквы, пробелы и дефис')
+            return redirect('edit_profile')
+
+        # Email
+        if not email:
+            messages.error(request, 'Email обязателен')
+            return redirect('edit_profile')
+        if '@' not in email:
+            messages.error(request, 'Email должен содержать символ @')
+            return redirect('edit_profile')
+        domain_part = email.split('@')[-1]
+        if '.' not in domain_part:
+            messages.error(request, 'Email должен содержать точку и домен')
+            return redirect('edit_profile')
+        if len(domain_part.split('.')[-1]) < 2:
+            messages.error(request, 'Некорректный домен email')
+            return redirect('edit_profile')
+
+        # Проверка уникальности email (исключая текущего пользователя)
+        if User.objects.filter(email=email).exclude(id=user.id).exists():
+            messages.error(request, 'Пользователь с таким email уже существует')
+            return redirect('edit_profile')
+
+        # Телефон (11 цифр)
+        if not phone:
+            messages.error(request, 'Телефон обязателен')
+            return redirect('edit_profile')
+        phone_digits = re.sub(r'\D', '', phone)
+        if len(phone_digits) != 11:
+            messages.error(request, f'Телефон должен содержать 11 цифр (сейчас: {len(phone_digits)})')
+            return redirect('edit_profile')
+        if not phone_digits.startswith(('7', '8')):
+            messages.error(request, 'Телефон должен начинаться с 7 или 8')
+            return redirect('edit_profile')
+
+        # Класс (1-11)
+        if not class_name:
+            messages.error(request, 'Класс обязателен')
+            return redirect('edit_profile')
+        class_match = re.match(r'^([1-9]|10|11)([а-яА-Я]?)$', class_name.strip())
+        if not class_match:
+            messages.error(request, 'Класс в формате 9а, 10б, 11в')
+            return redirect('edit_profile')
+        grade = int(class_match.group(1))
+        if grade > 11:
+            messages.error(request, 'Класс должен быть не больше 11')
             return redirect('edit_profile')
 
         try:
             # Обновляем данные пользователя (User)
-            user.first_name = first_name
-            user.last_name = last_name
-            user.email = email
+            user.first_name = first_name.strip().title()
+            user.last_name = last_name.strip().title()
+            user.email = email.lower().strip()
             user.save()
 
             # Обновляем данные абитуриента (Abiturient)
             if abiturient:
-                abiturient.first_name = first_name
-                abiturient.last_name = last_name
-                abiturient.email = email
-                abiturient.phone = phone
-                abiturient.class_name = class_name
+                abiturient.first_name = first_name.strip().title()
+                abiturient.last_name = last_name.strip().title()
+                abiturient.email = email.lower().strip()
+                abiturient.phone = phone_digits
+                abiturient.class_name = class_name.strip()
 
                 # Обработка фото
                 if request.FILES.get('photo'):
@@ -531,19 +598,22 @@ def edit_profile(request):
                 # Если записи нет - создаём новую
                 abiturient = Abiturient.objects.create(
                     user_id=user.id,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    phone=phone,
-                    class_name=class_name,
+                    first_name=first_name.strip().title(),
+                    last_name=last_name.strip().title(),
+                    email=email.lower().strip(),
+                    phone=phone_digits,
+                    class_name=class_name.strip(),
                     photo=request.FILES.get('photo'),
                 )
 
             messages.success(request, 'Профиль успешно обновлен!')
             return redirect('profile')
 
+        except IntegrityError:
+            messages.error(request, 'Ошибка при сохранении данных')
+            return redirect('edit_profile')
         except Exception as e:
-            messages.error(request, f'Ошибка при сохранении: {str(e)}')
+            messages.error(request, f'Ошибка: {str(e)}')
             return redirect('edit_profile')
 
     return render(request, 'main/edit_profile.html', {
@@ -760,6 +830,7 @@ def admin_teachers(request):
     teachers = Teacher.objects.select_related('user').filter(is_activ=True).all()
     return render(request, 'admin/teachers.html', {'teachers': teachers})
 
+
 @staff_member_required
 def admin_add_teacher(request):
     if request.method == 'POST':
@@ -769,25 +840,66 @@ def admin_add_teacher(request):
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
 
-        # Валидация обязательных полей
+        # 🔍 ВАЛИДАЦИЯ ЛОГИНА
         if not username:
             messages.error(request, 'Логин обязателен')
             return redirect('admin_add_teacher')
 
-        if not email:
-            messages.error(request, 'Email обязателен')
+        if len(username) < 3:
+            messages.error(request, 'Логин должен содержать минимум 3 символа')
             return redirect('admin_add_teacher')
 
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            messages.error(request, 'Логин может содержать только буквы, цифры и _')
+            return redirect('admin_add_teacher')
+
+        # 🔍 ВАЛИДАЦИЯ ПАРОЛЯ
         if not password or len(password) < 8:
             messages.error(request, 'Пароль должен содержать минимум 8 символов')
             return redirect('admin_add_teacher')
 
-        # Проверка уникальности username
+        # 🔍 ВАЛИДАЦИЯ ИМЕНИ (только буквы)
+        if not first_name:
+            messages.error(request, 'Имя обязательно')
+            return redirect('admin_add_teacher')
+
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', first_name):
+            messages.error(request, 'Имя должно содержать только буквы, пробелы и дефис')
+            return redirect('admin_add_teacher')
+
+        # 🔍 ВАЛИДАЦИЯ ФАМИЛИИ (только буквы)
+        if not last_name:
+            messages.error(request, 'Фамилия обязательна')
+            return redirect('admin_add_teacher')
+
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', last_name):
+            messages.error(request, 'Фамилия должна содержать только буквы, пробелы и дефис')
+            return redirect('admin_add_teacher')
+
+        # 🔍 ВАЛИДАЦИЯ EMAIL
+        if not email:
+            messages.error(request, 'Email обязателен')
+            return redirect('admin_add_teacher')
+
+        if '@' not in email:
+            messages.error(request, 'Email должен содержать символ @')
+            return redirect('admin_add_teacher')
+
+        domain_part = email.split('@')[-1]
+        if '.' not in domain_part:
+            messages.error(request, 'Email должен содержать точку и домен (например, @example.com)')
+            return redirect('admin_add_teacher')
+
+        if len(domain_part.split('.')[-1]) < 2:
+            messages.error(request, 'Некорректный домен email')
+            return redirect('admin_add_teacher')
+
+        # 🔍 ПРОВЕРКА УНИКАЛЬНОСТИ ЛОГИНА
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Пользователь с таким логином уже существует')
             return redirect('admin_add_teacher')
 
-        # Проверка уникальности email
+        # 🔍 ПРОВЕРКА УНИКАЛЬНОСТИ EMAIL
         if User.objects.filter(email=email).exists():
             messages.error(request, 'Пользователь с таким email уже существует')
             return redirect('admin_add_teacher')
@@ -798,8 +910,8 @@ def admin_add_teacher(request):
                 username=username,
                 email=email,
                 password=password,
-                first_name=first_name,
-                last_name=last_name,
+                first_name=first_name.strip().title(),
+                last_name=last_name.strip().title(),
                 is_staff=False,
                 is_active=True,
             )
@@ -807,11 +919,11 @@ def admin_add_teacher(request):
             # Создаем запись в таблице Teacher
             teacher = Teacher(
                 user_id=user.id,
-                first_name=first_name,
-                last_name=last_name,
+                first_name=first_name.strip().title(),
+                last_name=last_name.strip().title(),
                 description=request.POST.get('description', ''),
                 photo_url=request.POST.get('photo_url', ''),
-                email=email,
+                email=email.lower().strip(),
             )
             # Обработка фото
             if request.FILES.get('photo'):
@@ -824,6 +936,9 @@ def admin_add_teacher(request):
 
         except IntegrityError:
             messages.error(request, 'Ошибка при сохранении данных преподавателя')
+            return redirect('admin_add_teacher')
+        except Exception as e:
+            messages.error(request, f'Ошибка: {str(e)}')
             return redirect('admin_add_teacher')
 
     return render(request, 'admin/add_teacher.html')
@@ -838,28 +953,52 @@ def admin_edit_teacher(request, teacher_id):
         last_name = request.POST.get('last_name', '').strip()
         email = request.POST.get('email', '').strip()
 
-        if not first_name or not last_name:
-            messages.error(request, 'Имя и фамилия обязательны')
+        # 🔍 ВАЛИДАЦИЯ ИМЕНИ
+        if not first_name:
+            messages.error(request, 'Имя обязательно')
             return redirect('admin_edit_teacher', teacher_id=teacher_id)
 
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', first_name):
+            messages.error(request, 'Имя должно содержать только буквы, пробелы и дефис')
+            return redirect('admin_edit_teacher', teacher_id=teacher_id)
+
+        # 🔍 ВАЛИДАЦИЯ ФАМИЛИИ
+        if not last_name:
+            messages.error(request, 'Фамилия обязательна')
+            return redirect('admin_edit_teacher', teacher_id=teacher_id)
+
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', last_name):
+            messages.error(request, 'Фамилия должна содержать только буквы, пробелы и дефис')
+            return redirect('admin_edit_teacher', teacher_id=teacher_id)
+
+        # 🔍 ВАЛИДАЦИЯ EMAIL
         if not email:
             messages.error(request, 'Email обязателен')
+            return redirect('admin_edit_teacher', teacher_id=teacher_id)
+
+        if '@' not in email:
+            messages.error(request, 'Email должен содержать @')
+            return redirect('admin_edit_teacher', teacher_id=teacher_id)
+
+        domain_part = email.split('@')[-1]
+        if '.' not in domain_part:
+            messages.error(request, 'Email должен содержать домен')
             return redirect('admin_edit_teacher', teacher_id=teacher_id)
 
         try:
             # Обновляем данные пользователя
             user = teacher.user
-            user.first_name = first_name
-            user.last_name = last_name
-            user.email = email
+            user.first_name = first_name.strip().title()
+            user.last_name = last_name.strip().title()
+            user.email = email.lower().strip()
             user.save()
 
             # Обновляем данные преподавателя
-            teacher.first_name = first_name
-            teacher.last_name = last_name
+            teacher.first_name = first_name.strip().title()
+            teacher.last_name = last_name.strip().title()
             teacher.description = request.POST.get('description', '')
             teacher.photo_url = request.POST.get('photo_url', '')
-            teacher.email = email
+            teacher.email = email.lower().strip()
 
             # Обработка фото
             if request.FILES.get('photo'):
@@ -877,6 +1016,9 @@ def admin_edit_teacher(request, teacher_id):
 
         except IntegrityError:
             messages.error(request, 'Ошибка при сохранении данных')
+            return redirect('admin_edit_teacher', teacher_id=teacher_id)
+        except Exception as e:
+            messages.error(request, f'Ошибка: {str(e)}')
             return redirect('admin_edit_teacher', teacher_id=teacher_id)
 
     return render(request, 'admin/edit_teacher.html', {'teacher': teacher})
@@ -1054,7 +1196,7 @@ def admin_add_student(request):
     schools = School.objects.all()
 
     if request.method == 'POST':
-        # Валидация данных абитуриента
+        # 🔍 ПОЛУЧАЕМ ДАННЫЕ
         username = request.POST.get('username', '').strip()
         email = request.POST.get('email', '').strip()
         password = request.POST.get('password', '')
@@ -1062,92 +1204,184 @@ def admin_add_student(request):
         last_name = request.POST.get('last_name', '').strip()
         phone = request.POST.get('phone', '').strip()
         class_name = request.POST.get('class_name', '').strip()
+        school_id = request.POST.get('school_id')
 
-        # Валидация обязательных полей
+        # Данные родителя
+        parent_first_name = request.POST.get('parent_first_name', '').strip()
+        parent_last_name = request.POST.get('parent_last_name', '').strip()
+        parent_phone = request.POST.get('parent_phone', '').strip()
+        parent_pasport = request.POST.get('parent_pasport', '').strip()
+        parent_inn = request.POST.get('parent_inn', '').strip()
+        parent_address = request.POST.get('parent_address', '').strip()
+
+        # Логин
         if not username:
             messages.error(request, 'Логин обязателен')
             return redirect('admin_add_student')
-
-        if not email:
-            messages.error(request, 'Email обязателен')
+        if len(username) < 3:
+            messages.error(request, 'Логин должен содержать минимум 3 символа')
             return redirect('admin_add_student')
-
-        if not password or len(password) < 8:
-            messages.error(request, 'Пароль должен содержать минимум 8 символов')
+        if not re.match(r'^[a-zA-Z0-9_]+$', username):
+            messages.error(request, 'Логин может содержать только буквы, цифры и _')
             return redirect('admin_add_student')
-
-        # Проверка уникальности username
         if User.objects.filter(username=username).exists():
             messages.error(request, 'Пользователь с таким логином уже существует')
             return redirect('admin_add_student')
 
-        # Валидация данных родителя
-        parent_pasport = request.POST.get('parent_pasport', '').strip()
-        parent_inn = request.POST.get('parent_inn', '').strip()
+        # Email
+        if not email:
+            messages.error(request, 'Email обязателен')
+            return redirect('admin_add_student')
+        if '@' not in email:
+            messages.error(request, 'Email должен содержать символ @')
+            return redirect('admin_add_student')
+        domain_part = email.split('@')[-1]
+        if '.' not in domain_part:
+            messages.error(request, 'Email должен содержать точку и домен')
+            return redirect('admin_add_student')
+        if len(domain_part.split('.')[-1]) < 2:
+            messages.error(request, 'Некорректный домен email')
+            return redirect('admin_add_student')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Пользователь с таким email уже существует')
+            return redirect('admin_add_student')
 
+        # Пароль
+        if not password or len(password) < 8:
+            messages.error(request, 'Пароль должен содержать минимум 8 символов')
+            return redirect('admin_add_student')
+        if not re.search(r'[A-Za-z]', password):
+            messages.error(request, 'Пароль должен содержать хотя бы одну букву')
+            return redirect('admin_add_student')
+        if not re.search(r'\d', password):
+            messages.error(request, 'Пароль должен содержать хотя бы одну цифру')
+            return redirect('admin_add_student')
+
+        # Имя (только буквы)
+        if not first_name:
+            messages.error(request, 'Имя обязательно')
+            return redirect('admin_add_student')
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', first_name):
+            messages.error(request, 'Имя должно содержать только буквы, пробелы и дефис')
+            return redirect('admin_add_student')
+
+        # Фамилия (только буквы)
+        if not last_name:
+            messages.error(request, 'Фамилия обязательна')
+            return redirect('admin_add_student')
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', last_name):
+            messages.error(request, 'Фамилия должна содержать только буквы, пробелы и дефис')
+            return redirect('admin_add_student')
+
+        # Телефон (11 цифр)
+        if not phone:
+            messages.error(request, 'Телефон обязателен')
+            return redirect('admin_add_student')
+        phone_digits = re.sub(r'\D', '', phone)
+        if len(phone_digits) != 11:
+            messages.error(request, f'Телефон должен содержать 11 цифр (сейчас: {len(phone_digits)})')
+            return redirect('admin_add_student')
+        if not phone_digits.startswith(('7', '8')):
+            messages.error(request, 'Телефон должен начинаться с 7 или 8')
+            return redirect('admin_add_student')
+
+        # Класс (1-11)
+        if not class_name:
+            messages.error(request, 'Класс обязателен')
+            return redirect('admin_add_student')
+        class_match = re.match(r'^([1-9]|10|11)([а-яА-Я]?)$', class_name.strip())
+        if not class_match:
+            messages.error(request, 'Класс в формате 9а, 10б, 11в')
+            return redirect('admin_add_student')
+        grade = int(class_match.group(1))
+        if grade > 11:
+            messages.error(request, 'Класс должен быть не больше 11')
+            return redirect('admin_add_student')
+
+        # Имя родителя
+        if not parent_first_name:
+            messages.error(request, 'Имя родителя обязательно')
+            return redirect('admin_add_student')
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', parent_first_name):
+            messages.error(request, 'Имя родителя должно содержать только буквы')
+            return redirect('admin_add_student')
+
+        # Фамилия родителя
+        if not parent_last_name:
+            messages.error(request, 'Фамилия родителя обязательна')
+            return redirect('admin_add_student')
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', parent_last_name):
+            messages.error(request, 'Фамилия родителя должна содержать только буквы')
+            return redirect('admin_add_student')
+
+        # Телефон родителя (11 цифр)
+        if not parent_phone:
+            messages.error(request, 'Телефон родителя обязателен')
+            return redirect('admin_add_student')
+        parent_phone_digits = re.sub(r'\D', '', parent_phone)
+        if len(parent_phone_digits) != 11:
+            messages.error(request, f'Телефон родителя: 11 цифр (сейчас: {len(parent_phone_digits)})')
+            return redirect('admin_add_student')
+
+        # Паспорт (10 цифр)
         if not parent_pasport:
             messages.error(request, 'Паспорт родителя обязателен')
             return redirect('admin_add_student')
+        passport_digits = re.sub(r'\s', '', parent_pasport)
+        if len(passport_digits) != 10:
+            messages.error(request, 'Паспорт: 10 цифр (4 серия + 6 номер)')
+            return redirect('admin_add_student')
 
+        # ИНН (12 цифр)
         if not parent_inn:
             messages.error(request, 'ИНН родителя обязателен')
             return redirect('admin_add_student')
-
-        # Валидация формата ИНН (10 или 12 цифр)
-        if not re.match(r'^\d{10}$|^\d{12}$', parent_inn):
-            messages.error(request, 'ИНН должен содержать 10 или 12 цифр')
+        inn_digits = re.sub(r'\D', '', parent_inn)
+        if len(inn_digits) != 12:
+            messages.error(request, 'ИНН должен содержать 12 цифр')
             return redirect('admin_add_student')
+        if inn_digits[0] not in '1234':
+            messages.warning(request, 'ИНН физ.лица обычно начинается с 1, 2, 3 или 4')
 
-        # Валидация формата паспорта (4 цифры + 6 цифр)
-        if not re.match(r'^\d{4}\s?\d{6}$', parent_pasport.replace(' ', '')):
-            messages.error(request, 'Паспорт в формате: 4501 123456')
-            return redirect('admin_add_student')
-
-        # Проверка дубликата родителя
-        parent = Parent.objects.filter(
-            pasport=parent_pasport,
-            inn=parent_inn
-        ).first()
+        parent = Parent.objects.filter(pasport=passport_digits, inn=inn_digits).first()
 
         if not parent:
-            # Создаем нового родителя
             try:
                 parent = Parent.objects.create(
-                    first_name=request.POST.get('parent_first_name', '').strip(),
-                    last_name=request.POST.get('parent_last_name', '').strip(),
-                    phone=request.POST.get('parent_phone', '').strip(),
-                    pasport=parent_pasport,
-                    inn=parent_inn,
-                    address=request.POST.get('parent_address', '').strip(),
+                    first_name=parent_first_name.strip().title(),
+                    last_name=parent_last_name.strip().title(),
+                    phone=parent_phone_digits,
+                    pasport=passport_digits,
+                    inn=inn_digits,
+                    addres=parent_address,
                 )
             except IntegrityError:
                 messages.error(request, 'Ошибка при сохранении данных родителя')
                 return redirect('admin_add_student')
 
         try:
-            # 1. Создаем пользователя для абитуриента
+            # 1. Создаем пользователя
             user = User.objects.create_user(
                 username=username,
-                email=email,
+                email=email.lower().strip(),
                 password=password,
-                first_name=first_name,
-                last_name=last_name,
+                first_name=first_name.strip().title(),
+                last_name=last_name.strip().title(),
                 is_staff=False,
                 is_active=True,
             )
 
             # 2. Создаем абитуриента
-            abiturient = Abiturient(
+            abiturient = Abiturient.objects.create(
                 user_id=user.id,
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                phone=phone,
-                class_name=class_name,
-                school_id=request.POST.get('school_id') or None,
+                first_name=first_name.strip().title(),
+                last_name=last_name.strip().title(),
+                email=email.lower().strip(),
+                phone=phone_digits,
+                class_name=class_name.strip(),
+                school_id=school_id or None,
                 parent_id=parent.parent_id,
             )
-            abiturient.save()
 
             messages.success(request, f'Абитуриент {username} успешно добавлен!')
             return redirect('admin_students')
@@ -1155,10 +1389,12 @@ def admin_add_student(request):
         except IntegrityError:
             messages.error(request, 'Ошибка при сохранении данных абитуриента')
             return redirect('admin_add_student')
+        except Exception as e:
+            messages.error(request, f'Ошибка: {str(e)}')
+            return redirect('admin_add_student')
 
-    return render(request, 'admin/add_student.html', {
-        'schools': schools,
-    })
+    return render(request, 'admin/add_student.html', {'schools': schools})
+
 
 @staff_member_required
 def admin_edit_student(request, abitur_id):
@@ -1172,6 +1408,7 @@ def admin_edit_student(request, abitur_id):
         email = request.POST.get('email', '').strip()
         phone = request.POST.get('phone', '').strip()
         class_name = request.POST.get('class_name', '').strip()
+        school_id = request.POST.get('school_id')
 
         # Данные родителя
         parent_first_name = request.POST.get('parent_first_name', '').strip()
@@ -1181,86 +1418,153 @@ def admin_edit_student(request, abitur_id):
         parent_inn = request.POST.get('parent_inn', '').strip()
         parent_address = request.POST.get('parent_address', '').strip()
 
-        # Проверка обязательных полей абитуриента
-        if not first_name or not last_name or not email:
-            messages.error(request, 'Имя, фамилия и email обязательны')
+        # Имя (только буквы)
+        if not first_name:
+            messages.error(request, 'Имя обязательно')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', first_name):
+            messages.error(request, 'Имя должно содержать только буквы, пробелы и дефис')
             return redirect('admin_edit_student', abitur_id=abitur_id)
 
-        # Если есть родитель, проверяем его данные
+        # Фамилия (только буквы)
+        if not last_name:
+            messages.error(request, 'Фамилия обязательна')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', last_name):
+            messages.error(request, 'Фамилия должна содержать только буквы, пробелы и дефис')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+
+        # Email
+        if not email:
+            messages.error(request, 'Email обязателен')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        if '@' not in email:
+            messages.error(request, 'Email должен содержать символ @')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        domain_part = email.split('@')[-1]
+        if '.' not in domain_part:
+            messages.error(request, 'Email должен содержать точку и домен')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        if len(domain_part.split('.')[-1]) < 2:
+            messages.error(request, 'Некорректный домен email')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+
+        # Проверка уникальности email (исключая текущего пользователя)
+        if User.objects.filter(email=email).exclude(id=abiturient.user_id).exists():
+            messages.error(request, 'Пользователь с таким email уже существует')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+
+        # Телефон (11 цифр)
+        if not phone:
+            messages.error(request, 'Телефон обязателен')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        phone_digits = re.sub(r'\D', '', phone)
+        if len(phone_digits) != 11:
+            messages.error(request, f'Телефон должен содержать 11 цифр (сейчас: {len(phone_digits)})')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        if not phone_digits.startswith(('7', '8')):
+            messages.error(request, 'Телефон должен начинаться с 7 или 8')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+
+        # Класс (1-11)
+        if not class_name:
+            messages.error(request, 'Класс обязателен')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        class_match = re.match(r'^([1-9]|10|11)([а-яА-Я]?)$', class_name.strip())
+        if not class_match:
+            messages.error(request, 'Класс в формате 9а, 10б, 11в')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+        grade = int(class_match.group(1))
+        if grade > 11:
+            messages.error(request, 'Класс должен быть не больше 11')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
+
         if parent:
-            # Проверка имени родителя
-            if not parent_first_name or not parent_last_name:
-                messages.error(request, 'Имя и фамилия родителя обязательны')
+            # Имя родителя
+            if not parent_first_name:
+                messages.error(request, 'Имя родителя обязательно')
+                return redirect('admin_edit_student', abitur_id=abitur_id)
+            if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', parent_first_name):
+                messages.error(request, 'Имя родителя должно содержать только буквы')
                 return redirect('admin_edit_student', abitur_id=abitur_id)
 
-            # Проверка телефона родителя
+            # Фамилия родителя
+            if not parent_last_name:
+                messages.error(request, 'Фамилия родителя обязательна')
+                return redirect('admin_edit_student', abitur_id=abitur_id)
+            if not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', parent_last_name):
+                messages.error(request, 'Фамилия родителя должна содержать только буквы')
+                return redirect('admin_edit_student', abitur_id=abitur_id)
+
+            # Телефон родителя (11 цифр)
             if not parent_phone:
                 messages.error(request, 'Телефон родителя обязателен')
                 return redirect('admin_edit_student', abitur_id=abitur_id)
+            parent_phone_digits = re.sub(r'\D', '', parent_phone)
+            if len(parent_phone_digits) != 11:
+                messages.error(request, f'Телефон родителя: 11 цифр (сейчас: {len(parent_phone_digits)})')
+                return redirect('admin_edit_student', abitur_id=abitur_id)
 
-            # Проверка паспорта
+            # Паспорт (10 цифр)
             if parent_pasport:
-                passport_digits = ''.join(filter(str.isdigit, parent_pasport))
-
+                passport_digits = re.sub(r'\s', '', parent_pasport)
                 if len(passport_digits) != 10:
-                    messages.error(
-                        request,
-                        f'Неверный формат паспорта! Должно быть 10 цифр (сейчас: {len(passport_digits)}). '
-                        f'Формат: 4 цифры серия + 6 цифр номер (например: 1234567890)'
-                    )
+                    messages.error(request, 'Паспорт: 10 цифр (4 серия + 6 номер)')
                     return redirect('admin_edit_student', abitur_id=abitur_id)
+            else:
+                passport_digits = parent.pasport
 
-            # Проверка ИНН
+            # ИНН (12 цифр)
             if parent_inn:
-                inn_digits = ''.join(filter(str.isdigit, parent_inn))
-
+                inn_digits = re.sub(r'\D', '', parent_inn)
                 if len(inn_digits) != 12:
-                    messages.error(
-                        request,
-                        f'Неверный формат ИНН! Должно быть 12 цифр (сейчас: {len(inn_digits)}). '
-                        f'ИНН физического лица состоит из 12 цифр.'
-                    )
+                    messages.error(request, 'ИНН должен содержать 12 цифр')
                     return redirect('admin_edit_student', abitur_id=abitur_id)
-
                 if inn_digits[0] not in '1234':
-                    messages.warning(
-                        request,
-                        'Внимание: ИНН физ.лица обычно начинается с 1, 2, 3 или 4. '
-                        'Проверьте корректность данных.'
-                    )
+                    messages.warning(request, 'ИНН физ.лица обычно начинается с 1, 2, 3 или 4')
+            else:
+                inn_digits = parent.inn
+        else:
+            # Если родителя нет, используем старые значения
+            passport_digits = parent.pasport if parent else ''
+            inn_digits = parent.inn if parent else ''
+            parent_phone_digits = parent.phone if parent else ''
 
         try:
             # Обновляем данные пользователя
             user = abiturient.user
-            user.first_name = first_name
-            user.last_name = last_name
-            user.email = email
+            user.first_name = first_name.strip().title()
+            user.last_name = last_name.strip().title()
+            user.email = email.lower().strip()
             user.save()
 
             # Обновляем данные абитуриента
-            abiturient.first_name = first_name
-            abiturient.last_name = last_name
-            abiturient.email = email
-            abiturient.phone = phone
-            abiturient.class_name = class_name
-            abiturient.school_id = request.POST.get('school_id') or None
+            abiturient.first_name = first_name.strip().title()
+            abiturient.last_name = last_name.strip().title()
+            abiturient.email = email.lower().strip()
+            abiturient.phone = phone_digits
+            abiturient.class_name = class_name.strip()
+            abiturient.school_id = school_id or None
             abiturient.save()
 
             # Обновляем данные родителя
             if parent:
-                parent.first_name = parent_first_name
-                parent.last_name = parent_last_name
-                parent.phone = parent_phone
-                parent.pasport = passport_digits if parent_pasport else parent.pasport
-                parent.inn = inn_digits if parent_inn else parent.inn
-                parent.address = parent_address
+                parent.first_name = parent_first_name.strip().title()
+                parent.last_name = parent_last_name.strip().title()
+                parent.phone = parent_phone_digits
+                parent.pasport = passport_digits
+                parent.inn = inn_digits
+                parent.addres = parent_address
                 parent.save()
 
             messages.success(request, f'Абитуриент {last_name} {first_name} успешно обновлен!')
             return redirect('admin_students')
 
+        except IntegrityError:
+            messages.error(request, 'Ошибка при сохранении данных')
+            return redirect('admin_edit_student', abitur_id=abitur_id)
         except Exception as e:
-            messages.error(request, f'Ошибка при сохранении: {str(e)}')
+            messages.error(request, f'Ошибка: {str(e)}')
             return redirect('admin_edit_student', abitur_id=abitur_id)
 
     return render(request, 'admin/edit_student.html', {

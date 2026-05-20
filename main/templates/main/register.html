@@ -3,226 +3,338 @@
 {% block title %}Регистрация{% endblock %}
 
 {% block content %}
-<div class="auth-container" style="max-width: 700px;">
-    <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Регистрация</h1>
+<div class="auth-container">
+    <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Регистрация абитуриента</h1>
 
-    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem;">
-        <h3 style="margin: 0; font-size: 1.1rem;">Данные абитуриента</h3>
+    <!-- Общие ошибки формы -->
+    {% if form.non_field_errors %}
+    <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+        {% for error in form.non_field_errors %}
+        <p style="margin: 0;">{{ error }}</p>
+        {% endfor %}
     </div>
+    {% endif %}
 
-    <form method="post" id="registerForm">
+    <form method="post" novalidate>
         {% csrf_token %}
 
-        <div style="margin-bottom: 1rem;">
-            {{ form.username }}
-            {% if form.username.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                {{ form.username.errors|join:", " }}
+            <div class="form-group">
+                <label>Логин </label>
+                <input type="text"
+                       name="username"
+                       class="form-control"
+                       placeholder="Придумайте логин"
+                       pattern="[a-zA-Z0-9_]+"
+                       title="Только буквы, цифры и подчёркивание (3-150 символов)"
+                       minlength="3"
+                       maxlength="150"
+                       required
+                       value="{{ form.username.value|default:'' }}">
+                {% if form.username.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem;">
+                    {{ form.username.errors|join:", " }}
+                </p>
+                {% endif %}
+            </div>
+
+        <!-- Имя -->
+        <div class="form-group">
+            <label>Имя </label>
+            <input type="text"
+                   name="first_name"
+                   class="form-control"
+                   placeholder="Иван"
+                   pattern="[а-яА-ЯёЁa-zA-Z\s-]+"
+                   required
+                   value="{{ form.first_name.value|default:'' }}">
+            {% if form.first_name.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem;">
+                {{ form.first_name.errors|join:", " }}
             </p>
             {% endif %}
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div style="margin-bottom: 1rem;">
-                {{ form.first_name }}
-                {% if form.first_name.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.first_name.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                {{ form.last_name }}
-                {% if form.last_name.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.last_name.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
+        <!-- Фамилия -->
+        <div class="form-group">
+            <label>Фамилия </label>
+            <input type="text"
+                   name="last_name"
+                   class="form-control"
+                   placeholder="Иванов"
+                   pattern="[а-яА-ЯёЁa-zA-Z\s-]+"
+                   required
+                   value="{{ form.last_name.value|default:'' }}">
+            {% if form.last_name.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem;">
+                {{ form.last_name.errors|join:", " }}
+            </p>
+            {% endif %}
         </div>
 
-        <div style="margin-bottom: 1rem;">
-            {{ form.email }}
+        <!-- Email -->
+        <div class="form-group">
+            <label>Email </label>
+            <input type="email"
+                   name="email"
+                   class="form-control"
+                   placeholder="example@mail.ru"
+                   pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                   title="Введите корректный email (например, ivanov@mail.ru)"
+                   required
+                   value="{{ form.email.value|default:'' }}">
             {% if form.email.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem;">
                 {{ form.email.errors|join:", " }}
             </p>
             {% endif %}
+         </div>
+
+        <!-- Телефон -->
+        <div class="form-group">
+            <label>Телефон </label>
+            <input type="tel"
+                   name="phone"
+                   class="form-control"
+                   placeholder="+7 (999) 999-99-99"
+                   pattern="\+7\s?\([0-9]{3}\)\s?[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                   title="Введите 11 цифр в формате +7 (999) 999-99-99"
+                   required
+                   id="id_phone"
+                   value="{{ form.phone.value|default:'' }}">
+            {% if form.phone.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem;">
+                {{ form.phone.errors|join:", " }}
+            </p>
+            {% endif %}
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div style="margin-bottom: 1rem;">
-                {{ form.phone }}
-                {% if form.phone.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.phone.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                {{ form.class_name }}
-                {% if form.class_name.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.class_name.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
+        <!-- Класс -->
+        <div class="form-group">
+            <label>Класс </label>
+            <input type="text"
+                   name="class_name"
+                   class="form-control"
+                   placeholder="9а, 10б, 11в"
+                   pattern="([1-9]|10|11)[а-яА-Я]?"
+                   title="Класс от 1 до 11 с буквой (например, 9а)"
+                   required
+                   value="{{ form.class_name.value|default:'' }}">
+            {% if form.class_name.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem;">
+                {{ form.class_name.errors|join:", " }}
+            </p>
+            {% endif %}
         </div>
 
-        <!-- Выбор школы -->
-        <div style="margin-bottom: 1rem;">
-            <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
-                Школа
-            </label>
-            {{ form.school_choice }}
+        <!-- Школа -->
+        <div class="form-group">
+            <label>Школа </label>
+            <select name="school_choice"
+                    class="form-control"
+                    id="school_choice"
+                    required>
+                <option value="">-- Выберите школу --</option>
+                {% for school_id, school_name in form.school_choice.field.choices %}
+                    {% if school_id %}
+                    <option value="{{ school_id }}"
+                            {% if form.school_choice.value == school_id|stringformat:"s" %}selected{% endif %}>
+                        {{ school_name }}
+                    </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
             {% if form.school_choice.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
+            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.5rem;">
                 {{ form.school_choice.errors|join:", " }}
             </p>
             {% endif %}
-        </div>
 
-        <div style="margin-bottom: 1.5rem;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                {{ form.add_new_school }}
-                <span style="color: #667eea; font-weight: 500;">Добавить новую школу (если нет в списке)</span>
+            <label style="display: flex; align-items: center; margin-top: 1rem; cursor: pointer;">
+                <input type="checkbox"
+                       name="add_new_school"
+                       id="id_add_new_school"
+                       onchange="toggleSchoolFields()"
+                       style="margin-right: 0.5rem;">
+                Добавить новую школу
             </label>
         </div>
 
-        <!-- Поля для новой школы (скрыты по умолчанию) -->
-        <div id="new_school_fields" style="display: none; background: #e7f3ff; padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #667eea;">
-            <h4 style="color: #667eea; margin-bottom: 1rem;">Данные новой школы</h4>
+        <!-- Поля для новой школы -->
+        <div id="new_school_fields" style="display: none; background: #f8f9fa; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+            <h3 style="color: #667eea; margin-bottom: 1rem;">Новая школа</h3>
 
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
-                    {{ form.new_school_name.label }}
-                </label>
-                {{ form.new_school_name }}
+            <div class="form-group">
+                <label>Название школы </label>
+                <input type="text"
+                       name="new_school_name"
+                       class="form-control"
+                       placeholder="МБОУ СОШ №..."
+                       id="new_school_name"
+                       value="{{ form.new_school_name.value|default:'' }}">
                 {% if form.new_school_name.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.new_school_name.errors|join:", " }}
-                </p>
+                <p style="color: #dc3545; font-size: 0.85rem;">{{ form.new_school_name.errors|join:", " }}</p>
                 {% endif %}
             </div>
 
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
-                    {{ form.new_school_address.label }}
-                </label>
-                {{ form.new_school_address }}
+            <div class="form-group">
+                <label>Адрес школы </label>
+                <input type="text"
+                       name="new_school_address"
+                       class="form-control"
+                       placeholder="г. Город, ул. Улица, д. 1"
+                       id="new_school_address"
+                       value="{{ form.new_school_address.value|default:'' }}">
                 {% if form.new_school_address.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.new_school_address.errors|join:", " }}
-                </p>
+                <p style="color: #dc3545; font-size: 0.85rem;">{{ form.new_school_address.errors|join:", " }}</p>
                 {% endif %}
             </div>
 
-            <div style="margin-bottom: 1rem;">
-                <label style="display: block; color: #333; margin-bottom: 0.5rem; font-weight: 500;">
-                    {{ form.new_school_director.label }}
-                </label>
-                {{ form.new_school_director }}
-                {% if form.new_school_director.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.new_school_director.errors|join:", " }}
-                </p>
+            <div class="form-group">
+                <label>ФИО директора (3 поля) </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                    <input type="text"
+                           name="new_school_director_last_name"
+                           class="form-control"
+                           placeholder="Фамилия"
+                           id="new_school_director_last_name"
+                           value="{{ form.new_school_director_last_name.value|default:'' }}">
+                    <input type="text"
+                           name="new_school_director_first_name"
+                           class="form-control"
+                           placeholder="Имя"
+                           id="new_school_director_first_name"
+                           value="{{ form.new_school_director_first_name.value|default:'' }}">
+                    <input type="text"
+                           name="new_school_director_middle_name"
+                           class="form-control"
+                           placeholder="Отчество"
+                           id="new_school_director_middle_name"
+                           value="{{ form.new_school_director_middle_name.value|default:'' }}">
+                </div>
+                {% if form.new_school_director_last_name.errors %}
+                <p style="color: #dc3545; font-size: 0.85rem;">{{ form.new_school_director_last_name.errors|join:", " }}</p>
                 {% endif %}
             </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div style="margin-bottom: 1rem;">
-                {{ form.password1 }}
-                {% if form.password1.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.password1.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                {{ form.password2 }}
-                {% if form.password2.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.password2.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
-        </div>
+        <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
 
         <!-- Данные родителя -->
-        <div style="background: linear-gradient(135deg, #28a745 0%, #218838 100%); color: white; padding: 1rem; border-radius: 10px; margin: 2rem 0 1.5rem;">
-            <h3 style="margin: 0; font-size: 1.1rem;">Данные родителя</h3>
+        <!-- Имя родителя -->
+        <div class="form-group">
+            <label>Имя родителя </label>
+            <input type="text"
+                   name="parent_first_name"
+                   class="form-control"
+                   placeholder="Петр"
+                   pattern="[а-яА-ЯёЁa-zA-Z\s-]+"
+                   title="Только буквы"
+                   required
+                   value="{{ form.parent_first_name.value|default:'' }}">
+            {% if form.parent_first_name.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.parent_first_name.errors|join:", " }}</p>
+            {% endif %}
         </div>
 
-        <div style="background: #fff3cd; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; border-left: 4px solid #ffc107;">
-            <p style="color: #856404; margin: 0; font-size: 0.9rem;">
-                <strong>Важно:</strong> Если родитель уже регистрировал другого ребенка,
-                введите те же паспортные данные - запись будет найдена автоматически.
-            </p>
+        <!-- Фамилия родителя -->
+        <div class="form-group">
+            <label>Фамилия родителя </label>
+            <input type="text"
+                   name="parent_last_name"
+                   class="form-control"
+                   placeholder="Петров"
+                   pattern="[а-яА-ЯёЁa-zA-Z\s-]+"
+                   title="Только буквы"
+                   required
+                   value="{{ form.parent_last_name.value|default:'' }}">
+            {% if form.parent_last_name.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.parent_last_name.errors|join:", " }}</p>
+            {% endif %}
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <div style="margin-bottom: 1rem;">
-                {{ form.parent_first_name }}
-                {% if form.parent_first_name.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.parent_first_name.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                {{ form.parent_last_name }}
-                {% if form.parent_last_name.errors %}
-                <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                    {{ form.parent_last_name.errors|join:", " }}
-                </p>
-                {% endif %}
-            </div>
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-            {{ form.parent_phone }}
+        <!-- Телефон родителя -->
+        <div class="form-group">
+            <label>Телефон родителя </label>
+            <input type="tel"
+                   name="parent_phone"
+                   class="form-control"
+                   placeholder="+7 (999) 999-99-99"
+                   pattern="\+7\s?\([0-9]{3}\)\s?[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                   title="11 цифр"
+                   required
+                   id="id_parent_phone"
+                   value="{{ form.parent_phone.value|default:'' }}">
             {% if form.parent_phone.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                {{ form.parent_phone.errors|join:", " }}
-            </p>
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.parent_phone.errors|join:", " }}</p>
             {% endif %}
         </div>
 
-        <div style="margin-bottom: 1rem;">
-            {{ form.parent_pasport }}
+        <!-- Паспорт -->
+        <div class="form-group">
+            <label>Паспорт </label>
+            <input type="text"
+                   name="parent_pasport"
+                   class="form-control"
+                   placeholder="4501 123456"
+                   pattern="\d{4}\s?\d{6}"
+                   title="10 цифр: 4 цифры серия + 6 цифр номер"
+                   required
+                   value="{{ form.parent_pasport.value|default:'' }}">
             {% if form.parent_pasport.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                {{ form.parent_pasport.errors|join:", " }}
-            </p>
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.parent_pasport.errors|join:", " }}</p>
             {% endif %}
-            <small style="color: #999;">Серия и номер паспорта (например: 4501 123456)</small>
         </div>
 
-        <div style="margin-bottom: 1rem;">
-            {{ form.parent_inn }}
+        <!-- ИНН -->
+        <div class="form-group">
+            <label>ИНН </label>
+            <input type="text"
+                   name="parent_inn"
+                   class="form-control"
+                   placeholder="123456789012"
+                   pattern="\d{12}"
+                   title="12 цифр"
+                   required
+                   value="{{ form.parent_inn.value|default:'' }}">
             {% if form.parent_inn.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                {{ form.parent_inn.errors|join:", " }}
-            </p>
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.parent_inn.errors|join:", " }}</p>
             {% endif %}
-            <small style="color: #999;">ИНН (12 цифр)</small>
         </div>
 
-        <div style="margin-bottom: 1rem;">
-            {{ form.parent_address }}
+        <!-- Адрес родителя -->
+        <div class="form-group">
+            <label>Адрес проживания </label>
+            <input type="text"
+                   name="parent_address"
+                   class="form-control"
+                   placeholder="г. Город, ул. Улица, д. 1, кв. 1"
+                   required
+                   value="{{ form.parent_address.value|default:'' }}">
             {% if form.parent_address.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                {{ form.parent_address.errors|join:", " }}
-            </p>
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.parent_address.errors|join:", " }}</p>
             {% endif %}
         </div>
 
-        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">
+        <hr style="margin: 2rem 0; border: none; border-top: 2px solid #e0e0e0;">
+
+        <!-- Пароли -->
+        <div class="form-group">
+            <label>Пароль </label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.password1.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>Подтверждение пароля </label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+            <p style="color: #dc3545; font-size: 0.85rem;">{{ form.password2.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 1.5rem;">
             Зарегистрироваться
         </button>
     </form>
@@ -233,30 +345,60 @@
 </div>
 
 <script>
+// Показ/скрытие полей новой школы
 function toggleSchoolFields() {
-    var checkbox = document.getElementById('id_add_new_school');
-    var fields = document.getElementById('new_school_fields');
-    var schoolSelect = document.getElementById('id_school_choice');
+    const checkbox = document.getElementById('id_add_new_school');
+    const schoolChoice = document.querySelector('select[name="school_choice"]').closest('.form-group');
+    const newSchoolFields = document.getElementById('new_school_fields');
 
-    if (checkbox && fields) {
-        if (checkbox.checked) {
-            fields.style.display = 'block';
-            if (schoolSelect) {
-                schoolSelect.disabled = true;
-                schoolSelect.value = '';
-            }
-        } else {
-            fields.style.display = 'none';
-            if (schoolSelect) {
-                schoolSelect.disabled = false;
-            }
-        }
+    if (checkbox.checked) {
+        schoolChoice.style.display = 'none';
+        newSchoolFields.style.display = 'block';
+        // Делаем поля новой школы обязательными
+        newSchoolFields.querySelectorAll('input[required]').forEach(input => {
+            input.required = true;
+        });
+    } else {
+        schoolChoice.style.display = 'block';
+        newSchoolFields.style.display = 'none';
+        // Убираем required
+        newSchoolFields.querySelectorAll('input').forEach(input => {
+            input.required = false;
+        });
     }
 }
 
-// Вызываем при загрузке страницы
-window.onload = function() {
+// Маска для телефона
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInputs = [
+        document.getElementById('id_phone'),
+        document.getElementById('id_parent_phone')
+    ];
+
+    phoneInputs.forEach(function(input) {
+        if (input) {
+            input.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+
+                if (value.length > 0) {
+                    if (value.startsWith('8')) value = '7' + value.slice(1);
+                    if (!value.startsWith('7')) value = '7' + value;
+                }
+
+                let formatted = '+7';
+                if (value.length > 1) formatted += ' (' + value.slice(1, 4);
+                if (value.length > 4) formatted += ') ' + value.slice(4, 7);
+                if (value.length > 7) formatted += '-' + value.slice(7, 9);
+                if (value.length > 9) formatted += '-' + value.slice(9, 11);
+
+                e.target.value = formatted;
+            });
+        }
+    });
+
+    // Инициализация
     toggleSchoolFields();
-};
+});
 </script>
 {% endblock %}

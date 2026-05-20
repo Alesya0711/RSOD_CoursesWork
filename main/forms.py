@@ -3,20 +3,30 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator, EmailValidator
-from .models import Abiturient, Parent, RecordCourse, Feedback, Course
+from .models import Abiturient, Parent, RecordCourse, Feedback, Course, School
+from django.core.validators import EmailValidator, RegexValidator
+from django.core.exceptions import ValidationError
 
-
-# Форма регистрации пользователя
 class RegisterForm(UserCreationForm):
     # Данные абитуриента
+    username = forms.CharField(
+        max_length=150,
+        required=True,
+        label='Логин',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Логин',
+            'minlength': 3,
+            'maxlength': 150,
+        })
+    )
+
     email = forms.EmailField(
         required=True,
         label='Email',
-        validators=[EmailValidator(message='Введите корректный email адрес')],
         widget=forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'Email',
-            'pattern': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         })
     )
     first_name = forms.CharField(
@@ -26,7 +36,6 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Имя',
-            'pattern': r'^[а-яА-Яa-zA-Z]{2,50}$'
         })
     )
     last_name = forms.CharField(
@@ -36,23 +45,15 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Фамилия',
-            'pattern': r'^[а-яА-Яa-zA-Z]{2,50}$'
         })
     )
     phone = forms.CharField(
         max_length=20,
         required=True,
         label='Телефон абитуриента',
-        validators=[
-            RegexValidator(
-                regex=r'^[\+]?[0-9\s\-\(\)]{10,20}$',
-                message='Введите телефон в формате +7 (___) ___-__-__ (10-20 символов)'
-            )
-        ],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '+7 (___) ___-__-__',
-            'pattern': r'^[\+]?[0-9\s\-\(\)]{10,20}$',
+            'placeholder': '+7 (999) 999-99-99',
             'maxlength': 20
         })
     )
@@ -60,16 +61,9 @@ class RegisterForm(UserCreationForm):
         max_length=20,
         required=True,
         label='Класс',
-        validators=[
-            RegexValidator(
-                regex=r'^[1-4]?[0-9][а-яА-Я]?$',
-                message='Введите класс в формате 9а, 10б, 11в (цифра + буква)'
-            )
-        ],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '9а, 10б, 11а и т.д.',
-            'pattern': r'^[1-4]?[0-9][а-яА-Я]?$',
+            'placeholder': '9а, 10б, 11в',
             'maxlength': 5
         })
     )
@@ -112,14 +106,34 @@ class RegisterForm(UserCreationForm):
             'id': 'new_school_address',
         }),
     )
-    new_school_director = forms.CharField(
-        max_length=255,
+    new_school_director_last_name = forms.CharField(
+        max_length=100,
         required=False,
-        label='Директор школы',
+        label='Фамилия директора',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'ФИО директора',
-            'id': 'new_school_director',
+            'placeholder': 'Фамилия',
+            'id': 'new_school_director_last_name',
+        }),
+    )
+    new_school_director_first_name = forms.CharField(
+        max_length=100,
+        required=False,
+        label='Имя директора',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Имя',
+            'id': 'new_school_director_first_name',
+        }),
+    )
+    new_school_director_middle_name = forms.CharField(
+        max_length=100,
+        required=False,
+        label='Отчество директора',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Отчество',
+            'id': 'new_school_director_middle_name',
         }),
     )
 
@@ -131,7 +145,6 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Имя родителя',
-            'pattern': r'^[а-яА-Яa-zA-Z]{2,50}$'
         })
     )
     parent_last_name = forms.CharField(
@@ -141,23 +154,15 @@ class RegisterForm(UserCreationForm):
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Фамилия родителя',
-            'pattern': r'^[а-яА-Яa-zA-Z]{2,50}$'
         })
     )
     parent_phone = forms.CharField(
         max_length=20,
         required=True,
         label='Телефон родителя',
-        validators=[
-            RegexValidator(
-                regex=r'^[\+]?[0-9\s\-\(\)]{10,20}$',
-                message='Введите телефон в формате +7 (___) ___-__-__ (10-20 символов)'
-            )
-        ],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '+7 (___) ___-__-__',
-            'pattern': r'^[\+]?[0-9\s\-\(\)]{10,20}$',
+            'placeholder': '+7 (999) 999-99-99',
             'maxlength': 20
         })
     )
@@ -165,37 +170,20 @@ class RegisterForm(UserCreationForm):
         max_length=20,
         required=True,
         label='Паспорт родителя',
-        validators=[
-            RegexValidator(
-                regex=r'^\d{4}\s?\d{6}$',
-                message='Введите паспорт в формате 4501 123456 (4 цифры + 6 цифр)'
-            )
-        ],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': '4501 123456',
-            'pattern': r'^\d{4}\s?\d{6}$',
             'maxlength': 11,
-            'title': 'Формат: 4501 123456'
         })
     )
     parent_inn = forms.CharField(
         max_length=12,
         required=True,
         label='ИНН родителя',
-        validators=[
-            RegexValidator(
-                regex=r'^\d{10}$|^\d{12}$',
-                message='ИНН должен содержать 10 или 12 цифр'
-            )
-        ],
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '10 или 12 цифр',
-            'pattern': r'^\d{10}$|^\d{12}$',
+            'placeholder': '12 цифр',
             'maxlength': 12,
-            'minlength': 10,
-            'title': 'ИНН: 10 или 12 цифр'
         })
     )
     parent_address = forms.CharField(
@@ -238,8 +226,6 @@ class RegisterForm(UserCreationForm):
         self.fields['username'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': 'Логин',
-            'pattern': r'^[a-zA-Z0-9_]{3,150}$',
-            'title': 'Логин: 3-150 символов (буквы, цифры, _)',
             'maxlength': 150,
             'minlength': 3
         })
@@ -248,7 +234,6 @@ class RegisterForm(UserCreationForm):
             'class': 'form-control',
             'placeholder': 'Пароль',
             'minlength': 8,
-            'title': 'Пароль должен содержать минимум 8 символов'
         })
         self.fields['password2'].label = 'Подтверждение пароля'
         self.fields['password2'].widget.attrs.update({
@@ -258,7 +243,6 @@ class RegisterForm(UserCreationForm):
         })
 
         # Заполняем выбор школ
-        from .models import School
         schools = School.objects.all()
         school_choices = [('', '-- Выберите школу --')]
         for school in schools:
@@ -283,29 +267,104 @@ class RegisterForm(UserCreationForm):
             raise forms.ValidationError('Пароль должен содержать хотя бы одну цифру')
         return password
 
+    def clean_first_name(self):
+        """Имя - только буквы"""
+        first_name = self.cleaned_data.get('first_name')
+        if first_name and not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', first_name):
+            raise ValidationError('Имя должно содержать только буквы, пробелы и дефис')
+        return first_name.strip().title()
+
+    def clean_last_name(self):
+        """Фамилия - только буквы"""
+        last_name = self.cleaned_data.get('last_name')
+        if last_name and not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', last_name):
+            raise ValidationError('Фамилия должна содержать только буквы, пробелы и дефис')
+        return last_name.strip().title()
+
+    def clean_email(self):
+        """Email - проверка на @ и точку с доменом"""
+        email = self.cleaned_data.get('email')
+        if email:
+            if '@' not in email:
+                raise ValidationError('Email должен содержать символ @')
+            domain_part = email.split('@')[-1]
+            if '.' not in domain_part:
+                raise ValidationError('Email должен содержать точку и домен (например, @example.com)')
+            if len(domain_part.split('.')[-1]) < 2:
+                raise ValidationError('Некорректный домен email')
+        return email.lower().strip()
+
     def clean_phone(self):
+        """Телефон - ровно 11 цифр"""
         phone = self.cleaned_data.get('phone')
         if phone:
-            digits = re.sub(r'[^\d+]', '', phone)
-            if len(digits) < 10:
-                raise forms.ValidationError('Телефон должен содержать минимум 10 цифр')
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) != 11:
+                raise ValidationError(f'Телефон должен содержать ровно 11 цифр (сейчас: {len(digits)})')
+            if not digits.startswith(('7', '8')):
+                raise ValidationError('Телефон должен начинаться с 7 или 8')
+            return digits
         return phone
 
-    def clean_parent_inn(self):
-        inn = self.cleaned_data.get('parent_inn')
-        if inn:
-            inn_digits = re.sub(r'\D', '', inn)
-            if len(inn_digits) not in [10, 12]:
-                raise forms.ValidationError('ИНН должен содержать 10 или 12 цифр')
-        return inn
+    def clean_class_name(self):
+        """Класс - не больше 11"""
+        class_name = self.cleaned_data.get('class_name')
+        if class_name:
+            class_match = re.match(r'^([1-9]|10|11)([а-яА-Я]?)$', class_name.strip())
+            if not class_match:
+                raise ValidationError('Введите класс в формате 9а, 10б, 11в')
+            grade = int(class_match.group(1))
+            if grade > 11:
+                raise ValidationError('Класс должен быть не больше 11')
+        return class_name.strip()
+
+    def clean_parent_first_name(self):
+        """Имя родителя - только буквы"""
+        first_name = self.cleaned_data.get('parent_first_name')
+        if first_name and not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', first_name):
+            raise ValidationError('Имя родителя должно содержать только буквы, пробелы и дефис')
+        return first_name.strip().title()
+
+    def clean_parent_last_name(self):
+        """Фамилия родителя - только буквы"""
+        last_name = self.cleaned_data.get('parent_last_name')
+        if last_name and not re.match(r'^[а-яА-ЯёЁa-zA-Z\s-]+$', last_name):
+            raise ValidationError('Фамилия родителя должна содержать только буквы, пробелы и дефис')
+        return last_name.strip().title()
+
+    def clean_parent_phone(self):
+        """Телефон родителя - ровно 11 цифр"""
+        phone = self.cleaned_data.get('parent_phone')
+        if phone:
+            digits = re.sub(r'\D', '', phone)
+            if len(digits) != 11:
+                raise ValidationError(f'Телефон должен содержать ровно 11 цифр (сейчас: {len(digits)})')
+            if not digits.startswith(('7', '8')):
+                raise ValidationError('Телефон должен начинаться с 7 или 8')
+            return digits
+        return phone
 
     def clean_parent_pasport(self):
+        """Паспорт - 10 цифр"""
         pasport = self.cleaned_data.get('parent_pasport')
         if pasport:
-            pasport_digits = re.sub(r'\s', '', pasport)
-            if len(pasport_digits) != 10:
-                raise forms.ValidationError('Паспорт должен содержать 10 цифр (4 + 6)')
+            digits = re.sub(r'\s', '', pasport)
+            if len(digits) != 10:
+                raise ValidationError('Паспорт должен содержать 10 цифр (4 цифры серия + 6 цифр номер)')
+            return digits
         return pasport
+
+    def clean_parent_inn(self):
+        """ИНН - 12 цифр для физ.лица"""
+        inn = self.cleaned_data.get('parent_inn')
+        if inn:
+            digits = re.sub(r'\D', '', inn)
+            if len(digits) == 10:
+                raise ValidationError('ИНН физического лица должен содержать 12 цифр')
+            if len(digits) != 12:
+                raise ValidationError('ИНН должен содержать 12 цифр')
+            return digits
+        return inn
 
     def clean(self):
         cleaned_data = super().clean()
@@ -314,27 +373,17 @@ class RegisterForm(UserCreationForm):
         add_new_school = cleaned_data.get('add_new_school')
 
         if add_new_school:
-            # Если добавляем новую школу - поля обязательны
             if not cleaned_data.get('new_school_name'):
                 self.add_error('new_school_name', 'Укажите название школы')
             if not cleaned_data.get('new_school_address'):
                 self.add_error('new_school_address', 'Укажите адрес школы')
-            if not cleaned_data.get('new_school_director'):
-                self.add_error('new_school_director', 'Укажите ФИО директора')
+            if not cleaned_data.get('new_school_director_last_name'):
+                self.add_error('new_school_director_last_name', 'Укажите фамилию директора')
+            if not cleaned_data.get('new_school_director_first_name'):
+                self.add_error('new_school_director_first_name', 'Укажите имя директора')
         else:
             if not cleaned_data.get('school_choice'):
                 self.add_error('school_choice', 'Выберите школу из списка или добавьте новую')
-
-        # Валидация класса
-        class_name = cleaned_data.get('class_name')
-        if class_name:
-            class_match = re.match(r'^([1-4]?[0-9])([а-яА-Я]?)$', class_name)
-            if not class_match:
-                self.add_error('class_name', 'Введите класс в формате 9а, 10б, 11в')
-            else:
-                grade = int(class_match.group(1))
-                if grade < 1 or grade > 11:
-                    self.add_error('class_name', 'Класс должен быть от 1 до 11')
 
         return cleaned_data
 
@@ -343,18 +392,24 @@ class RegisterForm(UserCreationForm):
 class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['username'].label = ''
+        self.fields['username'].label = 'Логин'
         self.fields['username'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': 'Логин',
-            'required': 'required'
+            'required': 'required',
+            'autofocus': 'autofocus'
         })
-        self.fields['password'].label = ''
+        self.fields['password'].label = 'Пароль'
         self.fields['password'].widget.attrs.update({
             'class': 'form-control',
             'placeholder': 'Пароль',
             'required': 'required'
         })
+
+    error_messages = {
+        'invalid_login': 'Неверный логин или пароль',
+        'inactive': 'Этот аккаунт не активен',
+    }
 
 
 # Форма записи на курс

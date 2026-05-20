@@ -6,21 +6,60 @@
 <div class="auth-container">
     <h1 style="color: #667eea; margin-bottom: 1.5rem; text-align: center;">Вход</h1>
 
+    {% if messages %}
+    <div style="margin-bottom: 1rem;">
+        {% for message in messages %}
+        <div style="background: {% if message.tags == 'error' %}#f8d7da{% else %}#d4edda{% endif %};
+                    color: {% if message.tags == 'error' %}#721c24{% else %}#155724{% endif %};
+                    padding: 1rem;
+                    border-radius: 5px;
+                    margin-bottom: 0.5rem;">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if form.errors %}
+    <div style="background: #f8d7da; color: #721c24; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+        <p style="margin: 0; font-weight: bold;">Ошибка входа</p>
+        <p style="margin: 0.5rem 0 0 0;">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    {{ error }}<br>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </p>
+    </div>
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
 
-        {% for field in form %}
-        <div style="margin-bottom: 1rem;">
-            {{ field }}
-            {% if field.errors %}
-            <p style="color: #dc3545; font-size: 0.85rem; margin-top: 0.25rem;">
-                {{ field.errors|join:", " }}
-            </p>
-            {% endif %}
+        <div class="form-group">
+            <label>Логин</label>
+            <input type="text"
+                   name="username"
+                   class="form-control"
+                   placeholder="Введите логин"
+                   required
+                   value="{{ form.username.value|default:'' }}"
+                   autofocus>
         </div>
-        {% endfor %}
 
-        <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password"
+                   name="password"
+                   class="form-control"
+                   placeholder="Введите пароль"
+                   required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
             Войти
         </button>
     </form>
